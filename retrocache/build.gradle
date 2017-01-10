@@ -1,0 +1,36 @@
+apply plugin: 'com.android.library'
+apply plugin: 'com.github.dcendents.android-maven'
+apply from: '../quality/quality.gradle'
+
+group = 'com.github.iagocanalejas'
+
+android {
+    compileSdkVersion project.compileSdkVersion
+    buildToolsVersion project.buildToolsVersion
+
+    defaultConfig {
+        minSdkVersion project.minSdkVersion
+        targetSdkVersion project.compileSdkVersion
+        versionCode project.libraryCode
+        versionName project.libraryName
+    }
+
+    packagingOptions {
+        exclude 'META-INF/LICENSE.txt'
+        exclude 'META-INF/NOTICE.txt'
+        exclude 'META-INF/ASL2.0'
+        exclude 'META-INF/LICENSE'
+        exclude 'META-INF/NOTICE'
+    }
+
+}
+
+dependencies {
+    testCompile 'junit:junit:4.12'
+    testCompile "com.squareup.okhttp3:mockwebserver:$mockwebserver"
+
+    compile "com.android.support:support-annotations:$supportLib"
+    compile "com.google.code.gson:gson:$gsonVersion"
+    compile "com.squareup.retrofit2:retrofit:$retrofit"
+    compile "com.github.iagocanalejas.dualcache:dualcache:$dualcache"
+}

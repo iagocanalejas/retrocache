@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/RetroCache.iml" filepath="$PROJECT_DIR$/RetroCache.iml" />
+      <module fileurl="file://$PROJECT_DIR$/retrocache/retrocache.iml" filepath="$PROJECT_DIR$/retrocache/retrocache.iml" />
+    </modules>
+  </component>
+</project>
