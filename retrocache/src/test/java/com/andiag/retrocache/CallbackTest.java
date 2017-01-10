@@ -28,7 +28,7 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 /**
- * Created by Canalejas on 10/01/2017.
+ * Created by IagoCanalejas on 10/01/2017.
  */
 
 public class CallbackTest {

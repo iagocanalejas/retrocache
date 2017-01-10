@@ -17,7 +17,8 @@ import retrofit2.Response;
 import retrofit2.Retrofit;
 
 /**
- * Created by Canalejas on 09/01/2017.
+ * Created by IagoCanalejas on 09/01/2017.
+ * Handles the {@link CachedCall} requests
  */
 class CachedCallImpl<T> implements CachedCall<T> {
     private final Executor mExecutor;
@@ -42,9 +43,9 @@ class CachedCallImpl<T> implements CachedCall<T> {
     }
 
     /***
-     * Inspects an OkHttp-powered Call<T> and builds a Request
+     * Inspects an OkHttp-powered Call<T> and builds a Request.
      *
-     * @return A valid Request (that contains query parameters, right method and endpoint)
+     * @return A valid {@link Request} (that contains query parameters, right method and endpoint).
      */
     private Request buildRequestFromCall() {
         try {
@@ -65,8 +66,14 @@ class CachedCallImpl<T> implements CachedCall<T> {
         }
     }
 
-    private boolean handleResponseOnCache(final Callback<T> callback) {
-        byte[] data = mCachingSystem.get(ResponseUtils.urlToKey(buildRequest().url()));
+    /**
+     * Try to find {@link Request} on cache.
+     *
+     * @param callback {@link Callback} to handle {@link Callback#onResponse} result.
+     * @return True if found on cache. False otherwise.
+     */
+    private boolean requestCache(final Callback<T> callback) {
+        byte[] data = mCachingSystem.get(ResponseUtils.urlToKey(request().url()));
         if (data != null) {
             final T convertedData = ResponseUtils.bytesToResponse(
                     mRetrofit, mResponseType, mAnnotations, data);
@@ -82,7 +89,13 @@ class CachedCallImpl<T> implements CachedCall<T> {
         return false;
     }
 
-    private void handleResponseCall(final Callback<T> callback, final boolean isRefresh) {
+    /**
+     * Enqueue trying to resolve it with a server {@link Request}.
+     *
+     * @param callback  {@link Callback} to handle {@link Callback#onResponse} result.
+     * @param isRefresh Mark if cache should be deleted.
+     */
+    private void requestServer(final Callback<T> callback, final boolean isRefresh) {
         mCall.enqueue(new Callback<T>() {
             @Override
             public void onResponse(final Call<T> call, final Response<T> response) {
@@ -124,13 +137,13 @@ class CachedCallImpl<T> implements CachedCall<T> {
 
     @Override
     public void enqueue(final Callback<T> callback) {
-        if (buildRequest().method().equals("GET")) {
+        if (request().method().equals("GET")) {
             // Look in cache if we are in a GET method
             new Thread(new Runnable() {
                 @Override
                 public void run() {
-                    if (!handleResponseOnCache(callback)) {
-                        handleResponseCall(callback, false);
+                    if (!requestCache(callback)) {
+                        requestServer(callback, false);
                     }
                 }
             }).start();
@@ -160,13 +173,18 @@ class CachedCallImpl<T> implements CachedCall<T> {
     }
 
     @Override
+    public boolean isExecuted() {
+        return mCall.isExecuted();
+    }
+
+    @Override
     public void refresh(final Callback<T> callback) {
-        if (buildRequest().method().equals("GET")) {
+        if (request().method().equals("GET")) {
             // Look in cache if we are in a GET method
             new Thread(new Runnable() {
                 @Override
                 public void run() {
-                    handleResponseCall(callback, true);
+                    requestServer(callback, true);
                 }
             }).start();
         } else {
@@ -200,7 +218,7 @@ class CachedCallImpl<T> implements CachedCall<T> {
     }
 
     @Override
-    public Request buildRequest() {
+    public Request request() {
         return mRequest.newBuilder().build();
     }
 
@@ -218,5 +236,10 @@ class CachedCallImpl<T> implements CachedCall<T> {
     @Override
     public void cancel() {
         mCall.cancel();
+    }
+
+    @Override
+    public boolean isCanceled() {
+        return mCall.isCanceled();
     }
 }

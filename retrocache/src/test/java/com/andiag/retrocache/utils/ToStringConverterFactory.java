@@ -12,7 +12,7 @@ import retrofit2.Converter;
 import retrofit2.Retrofit;
 
 /**
- * Created by Canalejas on 10/01/2017.
+ * Created by IagoCanalejas on 10/01/2017.
  */
 
 public class ToStringConverterFactory extends Converter.Factory {

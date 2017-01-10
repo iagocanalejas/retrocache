@@ -17,7 +17,7 @@ import retrofit2.Converter;
 import retrofit2.Retrofit;
 
 /**
- * Created by Canalejas on 09/01/2017.
+ * Created by IagoCanalejas on 09/01/2017.
  */
 class ResponseUtils {
 

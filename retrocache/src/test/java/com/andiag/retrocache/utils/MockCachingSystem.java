@@ -5,7 +5,7 @@ import com.iagocanalejas.dualcache.interfaces.Cache;
 import java.util.HashMap;
 
 /**
- * Created by Canalejas on 10/01/2017.
+ * Created by IagoCanalejas on 10/01/2017.
  */
 public class MockCachingSystem implements Cache<String, byte[]> {
     private HashMap<String, byte[]> cachedResponses = new HashMap<>();
