@@ -34,3 +34,10 @@ dependencies {
     compile "com.squareup.retrofit2:retrofit:$retrofit"
     compile "com.github.iagocanalejas.dualcache:dualcache:$dualcache"
 }
+
+task javadoc(type: Javadoc) {
+    source = android.sourceSets.main.java.srcDirs
+    classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
+    destinationDir = file("../javadoc/")
+    failOnError false
+}
