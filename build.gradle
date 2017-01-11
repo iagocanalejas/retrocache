@@ -16,7 +16,7 @@ ext {
     // Library
     retrofit = '2.1.0'
     gsonVersion = '2.8.0'
-    dualcache = '1.2.1'
+    dualcache = '1.3'
 
 }
 

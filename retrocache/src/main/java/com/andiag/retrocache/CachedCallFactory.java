@@ -5,7 +5,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.support.annotation.NonNull;
 
-import com.andiag.retrocache.cache.RetrofitCache;
+import com.andiag.retrocache.cache.RetroCache;
 import com.andiag.retrocache.interfaces.CachedCall;
 import com.google.gson.reflect.TypeToken;
 import com.iagocanalejas.dualcache.interfaces.Cache;
@@ -24,7 +24,7 @@ public class CachedCallFactory extends CallAdapter.Factory {
     private final Executor mAsyncExecutor;
 
     public CachedCallFactory(Context context, int appVersion) {
-        this.mCachingSystem = RetrofitCache.getDualCache(context, appVersion);
+        this.mCachingSystem = RetroCache.getDualCache(context, appVersion);
         this.mAsyncExecutor = new Executor() {
             @Override
             public void execute(@NonNull Runnable command) {

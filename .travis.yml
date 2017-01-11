@@ -20,6 +20,7 @@ branches:
 script:
   - ./gradlew clean
   - ./gradlew check -Ptravis
+  - ./gradlew test
 
 notifications:
   email:
