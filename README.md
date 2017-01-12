@@ -2,6 +2,7 @@ Android RetroCache
 =================
 [![API](https://img.shields.io/badge/API-12%2B-blue.svg?style=flat)](https://android-arsenal.com/api?level=12)
 [![Build Status](https://travis-ci.org/iagocanalejas/retrocache.svg?branch=master)](https://travis-ci.org/iagocanalejas/retrocache)
+[![](https://jitpack.io/v/iagocanalejas/retrocache.svg)](https://jitpack.io/#iagocanalejas/retrocache)
 
 # Description
 This library provide an easy way for configure retrofit with a 2 layer cache (RAM and Disk).
