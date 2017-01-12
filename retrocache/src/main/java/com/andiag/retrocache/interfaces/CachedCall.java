@@ -26,4 +26,9 @@ public interface CachedCall<T> extends Call<T>, Cloneable {
      */
     Type responseType();
 
+    /**
+     * Remove a cached call if exists
+     */
+    void remove();
+
 }
