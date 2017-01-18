@@ -1,6 +1,7 @@
 package com.andiag.retrocache.cache;
 
 import android.content.Context;
+import android.support.annotation.NonNull;
 
 import com.andiag.retrocache.utils.ByteArraySerializer;
 import com.andiag.retrocache.utils.EntryCountSizeOf;
@@ -38,14 +39,16 @@ public final class RetroCache {
      * @param appVersion used to invalidate the cache.
      * @return {@link DualCache}.
      */
-    public static DualCache<String, byte[]> getDualCache(Context context, int appVersion) {
+    public static DualCache<String, byte[]> getDualCache(@NonNull Context context, int appVersion) {
         return new Builder<String, byte[]>(CACHE_NAME, appVersion)
                 .useReferenceInRam(REASONABLE_MEM_ENTRIES, new EntryCountSizeOf())
                 .useSerializerInDisk(REASONABLE_DISK_SIZE, true, new ByteArraySerializer(), context)
                 .build();
     }
 
-    public static DualCache<String, byte[]> getVolatileCache(Context context, int appVersion) {
+    public static DualCache<String, byte[]> getVolatileCache(@NonNull Context context,
+                                                             int appVersion) {
+
         return new Builder<String, byte[]>(CACHE_NAME, appVersion)
                 .useReferenceInRam(REASONABLE_MEM_ENTRIES, new EntryCountSizeOf())
                 .useSerializerInDisk(REASONABLE_DISK_SIZE, true, new ByteArraySerializer(), context)

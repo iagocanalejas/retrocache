@@ -234,6 +234,11 @@ class CachedCallImpl<T> implements CachedCall<T> {
     }
 
     @Override
+    public void remove() {
+        mCachingSystem.remove(ResponseUtils.urlToKey(mCall.request().url()));
+    }
+
+    @Override
     public void cancel() {
         mCall.cancel();
     }

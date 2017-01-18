@@ -78,13 +78,14 @@ dependencies {
     retrofitBuilder.addCallAdapterFactory(new CachedCallFactory(mCache));
     ```
 
-4. Use it as normal retrofit. Just remember to use `CachedCall`. All retrofit methods are included, and you can also call `refresh(callback)` to avoid looking in the cache.
+4. Use it as normal retrofit. Just remember to use `CachedCall`. All retrofit methods are included, and you can also call `refresh(callback)` to avoid looking in the cache or `remove()` to invalidate a cached call.
 
     ```java
        CachedCall<MyObject> call = ...
        call.refresh(new Callback<MyObject>() {
            ...
        });
+       call.remove();
     ```
 
 # Pull Requests

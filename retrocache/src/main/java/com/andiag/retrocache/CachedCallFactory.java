@@ -4,6 +4,7 @@ import android.content.Context;
 import android.os.Handler;
 import android.os.Looper;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 
 import com.andiag.retrocache.cache.RetroCache;
 import com.andiag.retrocache.interfaces.CachedCall;
@@ -23,7 +24,7 @@ public class CachedCallFactory extends CallAdapter.Factory {
     private final Cache<String, byte[]> mCachingSystem;
     private final Executor mAsyncExecutor;
 
-    public CachedCallFactory(Context context, int appVersion) {
+    public CachedCallFactory(@NonNull Context context, int appVersion) {
         this.mCachingSystem = RetroCache.getDualCache(context, appVersion);
         this.mAsyncExecutor = new Executor() {
             @Override
@@ -33,7 +34,7 @@ public class CachedCallFactory extends CallAdapter.Factory {
         };
     }
 
-    public CachedCallFactory(Cache<String, byte[]> cachingSystem) {
+    public CachedCallFactory(@NonNull Cache<String, byte[]> cachingSystem) {
         this.mCachingSystem = cachingSystem;
         this.mAsyncExecutor = new Executor() {
             @Override
@@ -43,7 +44,8 @@ public class CachedCallFactory extends CallAdapter.Factory {
         };
     }
 
-    public CachedCallFactory(Cache<String, byte[]> cachingSystem, Executor executor) {
+    public CachedCallFactory(@NonNull Cache<String, byte[]> cachingSystem,
+                             @Nullable Executor executor) {
         this.mCachingSystem = cachingSystem;
         this.mAsyncExecutor = executor;
     }
