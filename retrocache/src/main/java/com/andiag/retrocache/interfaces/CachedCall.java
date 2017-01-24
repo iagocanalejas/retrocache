@@ -31,4 +31,10 @@ public interface CachedCall<T> extends Call<T>, Cloneable {
      */
     void remove();
 
+    /**
+     * Create a new, identical call to this one which can be enqueued or executed even if this call
+     * has already been.
+     */
+    CachedCall<T> clone();
+
 }

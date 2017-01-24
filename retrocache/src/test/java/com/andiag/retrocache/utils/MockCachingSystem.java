@@ -12,7 +12,7 @@ public class MockCachingSystem implements Cache<String, byte[]> {
 
     @Override
     public boolean contains(String key) {
-        return false;
+        return cachedResponses.containsKey(key);
     }
 
     @Override
@@ -27,16 +27,18 @@ public class MockCachingSystem implements Cache<String, byte[]> {
 
     @Override
     public int size() {
-        return 0;
+        return cachedResponses.size();
     }
 
     @Override
     public byte[] remove(String key) {
-        return new byte[0];
+        byte[] previous = cachedResponses.get(key);
+        cachedResponses.remove(key);
+        return previous;
     }
 
     @Override
     public void clear() {
-
+        cachedResponses = new HashMap<>();
     }
 }
