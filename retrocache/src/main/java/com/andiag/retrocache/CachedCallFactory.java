@@ -24,6 +24,10 @@ public class CachedCallFactory extends CallAdapter.Factory {
     private final Cache<String, byte[]> mCachingSystem;
     private final Executor mAsyncExecutor;
 
+    public Cache<String, byte[]> getCachingSystem() {
+        return mCachingSystem;
+    }
+
     public CachedCallFactory(@NonNull Context context, int appVersion) {
         this.mCachingSystem = RetroCache.getDualCache(context, appVersion);
         this.mAsyncExecutor = new Executor() {
