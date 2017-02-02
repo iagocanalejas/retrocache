@@ -2,6 +2,7 @@ package com.andiag.retrocache;
 
 import android.support.annotation.NonNull;
 
+import com.andiag.retrocache.annotations.Caching;
 import com.andiag.retrocache.interfaces.CachedCall;
 import com.andiag.retrocache.utils.MockCachingSystem;
 import com.andiag.retrocache.utils.ToStringConverterFactory;
@@ -149,6 +150,29 @@ public class CallbackTest {
         });
     }
 
+    @Test
+    public void disabledCache() {
+        /* Set up the mock webserver */
+        MockResponse resp = new MockResponse().setBody("VERY_BASIC_BODY");
+        mServer.enqueue(resp);
+
+        DemoService demoService = mRetrofit.create(DemoService.class);
+        CachedCall<String> call = demoService.getUncachedHome();
+
+        call.enqueue(new Callback<String>() {
+            @Override
+            public void onResponse(Call<String> call, Response<String> response) {
+                assertEquals(response.body(), "VERY_BASIC_BODY");
+                assertNull(mMockCachingSystem.get(Utils.urlToKey(call.request().url())));
+            }
+
+            @Override
+            public void onFailure(Call<String> call, Throwable t) {
+                fail("Failure executing the request: " + t.getMessage());
+            }
+        });
+    }
+
     private static class MainThreadExecutor implements Executor {
         @Override
         public void execute(@NonNull Runnable command) {
@@ -157,7 +181,13 @@ public class CallbackTest {
     }
 
     interface DemoService {
+
         @GET("/")
         CachedCall<String> getHome();
+
+        @Caching(active = false)
+        @GET("/")
+        CachedCall<String> getUncachedHome();
+
     }
 }

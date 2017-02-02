@@ -1,5 +1,6 @@
 package com.andiag.retrocache;
 
+import com.andiag.retrocache.annotations.Caching;
 import com.andiag.retrocache.interfaces.CachedCall;
 import com.iagocanalejas.dualcache.interfaces.Cache;
 
@@ -36,6 +37,22 @@ class RetroCacheCall<T> implements CachedCall<T> {
         this.mRetrofit = retrofit;
         this.mCachingSystem = cachingSystem;
         this.mRequest = RequestBuilder.build(call);
+    }
+
+    /**
+     * Find caching value using {@link Caching} annotation in the call annotations.
+     *
+     * @param method REST
+     * @return annotation value if exist.
+     * If not, true for {@link retrofit2.http.GET}, false otherwise.
+     */
+    private boolean isCachingActive(String method) {
+        for (Annotation annotation : mAnnotations) {
+            if (annotation instanceof Caching) {
+                return ((Caching) annotation).active();
+            }
+        }
+        return method.equals("GET");
     }
 
     /**
@@ -138,7 +155,7 @@ class RetroCacheCall<T> implements CachedCall<T> {
 
     @Override
     public void enqueue(final Callback<T> callback) {
-        if (request().method().equals("GET")) {
+        if (request().method().equals("GET") && isCachingActive("GET")) {
             // Look in cache if we are in a GET method
             new Thread(new Runnable() {
                 @Override

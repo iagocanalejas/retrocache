@@ -78,7 +78,10 @@ dependencies {
     retrofitBuilder.addCallAdapterFactory(new CachedCallFactory(mCache));
     ```
 
-4. Use it as normal retrofit. Just remember to use `CachedCall`. All retrofit methods are included, and you can also call `refresh(callback)` to avoid looking in the cache or `remove()` to invalidate a cached call.
+4. Use it as normal retrofit. Just remember to use `CachedCall`. All retrofit methods are included, and you can also use methods included in `Included` section.
+
+# Included
+In addition to normal retrofit usage you can also call `refresh(callback)` to avoid looking in the cache or `remove()` to invalidate a cached call.
 
     ```java
        CachedCall<MyObject> call = ...
@@ -86,6 +89,18 @@ dependencies {
            ...
        });
        call.remove();
+    ```
+
+You can also tell RetroCache when to catch a call using `@Caching(active = true/false)`
+
+    ```java
+        public interface ApiService {
+
+            @Caching(active = false)
+            @GET("/")
+            CachedCall<MyObject> getResource();
+
+        }
     ```
 
 # Pull Requests
