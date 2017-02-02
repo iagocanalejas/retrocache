@@ -5,8 +5,6 @@ import com.iagocanalejas.dualcache.interfaces.Cache;
 
 import java.io.IOException;
 import java.lang.annotation.Annotation;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 import java.util.concurrent.Executor;
 
@@ -37,33 +35,7 @@ class CachedCallImpl<T> implements CachedCall<T> {
         this.mAnnotations = annotations;
         this.mRetrofit = retrofit;
         this.mCachingSystem = cachingSystem;
-
-        // This one is a hack but should create a valid Response (which can later be cloned)
-        this.mRequest = buildRequestFromCall();
-    }
-
-    /***
-     * Inspects an OkHttp-powered Call<T> and builds a Request.
-     *
-     * @return A valid {@link Request} (that contains query parameters, right method and endpoint).
-     */
-    private Request buildRequestFromCall() {
-        try {
-            Field argsField = mCall.getClass().getDeclaredField("args");
-            argsField.setAccessible(true);
-            Object[] args = (Object[]) argsField.get(mCall);
-
-            Field serviceMethodField = mCall.getClass().getDeclaredField("serviceMethod");
-            serviceMethodField.setAccessible(true);
-            Object requestFactory = serviceMethodField.get(mCall);
-
-            Method createMethod = requestFactory.getClass()
-                    .getDeclaredMethod("toRequest", Object[].class);
-            createMethod.setAccessible(true);
-            return (Request) createMethod.invoke(requestFactory, new Object[]{args});
-        } catch (Exception exc) {
-            return null;
-        }
+        this.mRequest = RequestBuilder.build(call);
     }
 
     /**
@@ -72,7 +44,7 @@ class CachedCallImpl<T> implements CachedCall<T> {
      * @param callback {@link Callback} to handle {@link Callback#onResponse} result.
      * @return True if found on cache. False otherwise.
      */
-    private boolean requestCache(final Callback<T> callback) {
+    private boolean getFromCache(final Callback<T> callback) {
         byte[] data = mCachingSystem.get(ResponseUtils.urlToKey(request().url()));
         if (data != null) {
             final T convertedData = ResponseUtils.bytesToResponse(
@@ -95,7 +67,7 @@ class CachedCallImpl<T> implements CachedCall<T> {
      * @param callback  {@link Callback} to handle {@link Callback#onResponse} result.
      * @param isRefresh Mark if cache should be deleted.
      */
-    private void requestServer(final Callback<T> callback, final boolean isRefresh) {
+    private void getFromServer(final Callback<T> callback, final boolean isRefresh) {
         mCall.enqueue(new Callback<T>() {
             @Override
             public void onResponse(final Call<T> call, final Response<T> response) {
@@ -135,41 +107,28 @@ class CachedCallImpl<T> implements CachedCall<T> {
         });
     }
 
-    @Override
-    public void enqueue(final Callback<T> callback) {
-        if (request().method().equals("GET")) {
-            // Look in cache if we are in a GET method
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    if (!requestCache(callback)) {
-                        requestServer(callback, false);
+    private void delegate(final Callback<T> callback) {
+        mCall.enqueue(new Callback<T>() {
+            @Override
+            public void onResponse(final Call<T> call, final Response<T> response) {
+                mExecutor.execute(new Runnable() {
+                    @Override
+                    public void run() {
+                        callback.onResponse(call, response);
                     }
-                }
-            }).start();
-        } else {
-            mCall.enqueue(new Callback<T>() {
-                @Override
-                public void onResponse(final Call<T> call, final Response<T> response) {
-                    mExecutor.execute(new Runnable() {
-                        @Override
-                        public void run() {
-                            callback.onResponse(call, response);
-                        }
-                    });
-                }
+                });
+            }
 
-                @Override
-                public void onFailure(final Call<T> call, final Throwable t) {
-                    mExecutor.execute(new Runnable() {
-                        @Override
-                        public void run() {
-                            callback.onFailure(call, t);
-                        }
-                    });
-                }
-            });
-        }
+            @Override
+            public void onFailure(final Call<T> call, final Throwable t) {
+                mExecutor.execute(new Runnable() {
+                    @Override
+                    public void run() {
+                        callback.onFailure(call, t);
+                    }
+                });
+            }
+        });
     }
 
     @Override
@@ -178,38 +137,34 @@ class CachedCallImpl<T> implements CachedCall<T> {
     }
 
     @Override
-    public void refresh(final Callback<T> callback) {
+    public void enqueue(final Callback<T> callback) {
         if (request().method().equals("GET")) {
             // Look in cache if we are in a GET method
             new Thread(new Runnable() {
                 @Override
                 public void run() {
-                    requestServer(callback, true);
+                    if (!getFromCache(callback)) {
+                        getFromServer(callback, false);
+                    }
                 }
             }).start();
-        } else {
-            mCall.enqueue(new Callback<T>() {
-                @Override
-                public void onResponse(final Call<T> call, final Response<T> response) {
-                    mExecutor.execute(new Runnable() {
-                        @Override
-                        public void run() {
-                            callback.onResponse(call, response);
-                        }
-                    });
-                }
-
-                @Override
-                public void onFailure(final Call<T> call, final Throwable t) {
-                    mExecutor.execute(new Runnable() {
-                        @Override
-                        public void run() {
-                            callback.onFailure(call, t);
-                        }
-                    });
-                }
-            });
+            return;
         }
+        delegate(callback);
+    }
+
+    @Override
+    public void refresh(final Callback<T> callback) {
+        if (request().method().equals("GET")) {
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    getFromServer(callback, true);
+                }
+            }).start();
+            return;
+        }
+        delegate(callback);
     }
 
     @Override
