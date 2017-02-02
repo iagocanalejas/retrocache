@@ -72,7 +72,7 @@ public class CachedCallFactory extends CallAdapter.Factory {
 
             @Override
             public <R> CachedCall<R> adapt(Call<R> call) {
-                return new CachedCallImpl<>(mAsyncExecutor, call, responseType(), annotations,
+                return new RetroCacheCall<>(mAsyncExecutor, call, responseType(), annotations,
                         retrofit, mCachingSystem);
             }
         };

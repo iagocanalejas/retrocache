@@ -18,7 +18,7 @@ import retrofit2.Retrofit;
  * Created by IagoCanalejas on 09/01/2017.
  * Handles the {@link CachedCall} requests
  */
-class CachedCallImpl<T> implements CachedCall<T> {
+class RetroCacheCall<T> implements CachedCall<T> {
     private final Executor mExecutor;
     private final Call<T> mCall;
     private final Type mResponseType;
@@ -27,7 +27,7 @@ class CachedCallImpl<T> implements CachedCall<T> {
     private final Cache<String, byte[]> mCachingSystem;
     private final Request mRequest;
 
-    CachedCallImpl(Executor executor, Call<T> call, Type responseType, Annotation[] annotations,
+    RetroCacheCall(Executor executor, Call<T> call, Type responseType, Annotation[] annotations,
                    Retrofit retrofit, Cache<String, byte[]> cachingSystem) {
         this.mExecutor = executor;
         this.mCall = call;
@@ -179,7 +179,7 @@ class CachedCallImpl<T> implements CachedCall<T> {
 
     @Override
     public CachedCall<T> clone() {
-        return new CachedCallImpl<>(mExecutor, mCall.clone(), responseType(),
+        return new RetroCacheCall<>(mExecutor, mCall.clone(), responseType(),
                 mAnnotations, mRetrofit, mCachingSystem);
     }
 
