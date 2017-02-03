@@ -49,7 +49,7 @@ class RetroCacheCall<T> implements CachedCall<T> {
     private boolean isCachingActive(String method) {
         for (Annotation annotation : mAnnotations) {
             if (annotation instanceof Caching) {
-                return ((Caching) annotation).active();
+                return ((Caching) annotation).enabled();
             }
         }
         return method.equals("GET");
@@ -62,7 +62,8 @@ class RetroCacheCall<T> implements CachedCall<T> {
      * @return True if found on cache. False otherwise.
      */
     private boolean getFromCache(final Callback<T> callback) {
-        byte[] data = mCachingSystem.get(ResponseUtils.urlToKey(request().url()));
+        byte[] data = mCachingSystem.get(
+                ResponseUtils.urlToKey(request().method(), request().url()));
         if (data != null) {
             final T convertedData = ResponseUtils.bytesToResponse(
                     mRetrofit, mResponseType, mAnnotations, data);
@@ -94,14 +95,18 @@ class RetroCacheCall<T> implements CachedCall<T> {
                         if (response.isSuccessful()) {
                             // Add response to cache
                             mCachingSystem.put(
-                                    ResponseUtils.urlToKey(response.raw().request().url()),
+                                    ResponseUtils.urlToKey(
+                                            call.request().method(),
+                                            response.raw().request().url()),
                                     ResponseUtils.responseToBytes(mRetrofit, response.body(),
                                             responseType(), mAnnotations));
                         }
                         if (!response.isSuccessful() && isRefresh) {
                             // If we are refreshing remove cache entry
                             mCachingSystem.remove(
-                                    ResponseUtils.urlToKey(response.raw().request().url()));
+                                    ResponseUtils.urlToKey(
+                                            call.request().method(),
+                                            response.raw().request().url()));
                         }
                         callback.onResponse(call, response);
                     }
@@ -115,7 +120,8 @@ class RetroCacheCall<T> implements CachedCall<T> {
                     public void run() {
                         if (isRefresh) {
                             // If we are refreshing remove cache entry
-                            mCachingSystem.remove(ResponseUtils.urlToKey(call.request().url()));
+                            mCachingSystem.remove(ResponseUtils.urlToKey(call.request().method(),
+                                    call.request().url()));
                         }
                         callback.onFailure(call, t);
                     }
@@ -155,7 +161,7 @@ class RetroCacheCall<T> implements CachedCall<T> {
 
     @Override
     public void enqueue(final Callback<T> callback) {
-        if (request().method().equals("GET") && isCachingActive("GET")) {
+        if (isCachingActive(request().method())) {
             // Look in cache if we are in a GET method
             new Thread(new Runnable() {
                 @Override
@@ -172,7 +178,7 @@ class RetroCacheCall<T> implements CachedCall<T> {
 
     @Override
     public void refresh(final Callback<T> callback) {
-        if (request().method().equals("GET")) {
+        if (isCachingActive(request().method())) {
             new Thread(new Runnable() {
                 @Override
                 public void run() {
@@ -207,7 +213,8 @@ class RetroCacheCall<T> implements CachedCall<T> {
 
     @Override
     public void remove() {
-        mCachingSystem.remove(ResponseUtils.urlToKey(mCall.request().url()));
+        mCachingSystem.remove(ResponseUtils.urlToKey(
+                mCall.request().method(), mCall.request().url()));
     }
 
     @Override

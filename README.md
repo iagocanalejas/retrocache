@@ -91,7 +91,7 @@ In addition to normal retrofit usage you can also call `refresh(callback)` to av
        call.remove();
     ```
 
-You can also tell RetroCache when to catch a call using `@Caching(active = true/false)`
+You can also tell RetroCache when a call should be cached using `@Caching(active = true/false)`.
 
     ```java
         public interface ApiService {
@@ -102,6 +102,8 @@ You can also tell RetroCache when to catch a call using `@Caching(active = true/
 
         }
     ```
+
+**This feature is by default enabled to `@GET` and disabled for the rest of methods.**
 
 # Pull Requests
 I welcome and encourage all pull requests. Here are some basic rules to follow to ensure timely addition of your request:

@@ -1,5 +1,6 @@
 package com.andiag.retrocache;
 
+import android.support.annotation.NonNull;
 import android.util.Log;
 
 import com.iagocanalejas.dualcache.hashing.Hashing;
@@ -69,8 +70,15 @@ class ResponseUtils {
         return null;
     }
 
-    static String urlToKey(HttpUrl url) {
-        return Hashing.sha1(url.toString(), Charset.defaultCharset());
+    /**
+     * Hash the url concat the REST method used to work as cache key.
+     *
+     * @param method REST method used
+     * @param url    requested
+     * @return hashed cache key
+     */
+    static String urlToKey(@NonNull String method, @NonNull HttpUrl url) {
+        return Hashing.sha1(method.concat(url.toString()), Charset.defaultCharset());
     }
 
 }

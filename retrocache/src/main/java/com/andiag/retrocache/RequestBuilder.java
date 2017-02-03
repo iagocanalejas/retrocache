@@ -7,7 +7,7 @@ import okhttp3.Request;
 import retrofit2.Call;
 
 /**
- * Created by Canalejas on 02/02/2017.
+ * Created by IagoCanalejas on 02/02/2017.
  * Required because {@link retrofit2.RequestBuilder} is final and package local
  */
 final class RequestBuilder {

@@ -23,7 +23,9 @@ import retrofit2.CallAdapter;
 import retrofit2.Callback;
 import retrofit2.Response;
 import retrofit2.Retrofit;
+import retrofit2.http.Body;
 import retrofit2.http.GET;
+import retrofit2.http.POST;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -157,13 +159,36 @@ public class CallbackTest {
         mServer.enqueue(resp);
 
         DemoService demoService = mRetrofit.create(DemoService.class);
-        CachedCall<String> call = demoService.getUncachedHome();
+        CachedCall<String> call = demoService.getHomeDisablingCache();
 
         call.enqueue(new Callback<String>() {
             @Override
             public void onResponse(Call<String> call, Response<String> response) {
                 assertEquals(response.body(), "VERY_BASIC_BODY");
                 assertNull(mMockCachingSystem.get(Utils.urlToKey(call.request().url())));
+            }
+
+            @Override
+            public void onFailure(Call<String> call, Throwable t) {
+                fail("Failure executing the request: " + t.getMessage());
+            }
+        });
+    }
+
+    @Test
+    public void cachedPost() {
+        /* Set up the mock webserver */
+        MockResponse resp = new MockResponse().setBody("VERY_BASIC_BODY");
+        mServer.enqueue(resp);
+
+        DemoService demoService = mRetrofit.create(DemoService.class);
+        CachedCall<String> call = demoService.postHome("SIMPLE_BODY");
+
+        call.enqueue(new Callback<String>() {
+            @Override
+            public void onResponse(Call<String> call, Response<String> response) {
+                assertEquals(response.body(), "VERY_BASIC_BODY");
+                assertNotNull(mMockCachingSystem.get(Utils.urlToKey(call.request().url())));
             }
 
             @Override
@@ -185,9 +210,13 @@ public class CallbackTest {
         @GET("/")
         CachedCall<String> getHome();
 
-        @Caching(active = false)
+        @Caching(enabled = false)
         @GET("/")
-        CachedCall<String> getUncachedHome();
+        CachedCall<String> getHomeDisablingCache();
+
+        @Caching
+        @POST("/")
+        CachedCall<String> postHome(@Body String body);
 
     }
 }
