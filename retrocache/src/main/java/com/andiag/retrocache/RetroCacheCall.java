@@ -27,6 +27,7 @@ class RetroCacheCall<T> implements CachedCall<T> {
     private final Retrofit mRetrofit;
     private final Cache<String, byte[]> mCachingSystem;
     private final Request mRequest;
+    private final boolean cachingActive;
 
     RetroCacheCall(Executor executor, Call<T> call, Type responseType, Annotation[] annotations,
                    Retrofit retrofit, Cache<String, byte[]> cachingSystem) {
@@ -37,6 +38,7 @@ class RetroCacheCall<T> implements CachedCall<T> {
         this.mRetrofit = retrofit;
         this.mCachingSystem = cachingSystem;
         this.mRequest = RequestBuilder.build(call);
+        cachingActive = isCachingActive(mCall.request().method());
     }
 
     /**
@@ -61,7 +63,7 @@ class RetroCacheCall<T> implements CachedCall<T> {
      * @param callback {@link Callback} to handle {@link Callback#onResponse} result.
      * @return True if found on cache. False otherwise.
      */
-    private boolean getFromCache(final Callback<T> callback) {
+    private boolean cacheLoad(final Callback<T> callback) {
         byte[] data = mCachingSystem.get(
                 ResponseUtils.urlToKey(request().method(), request().url()));
         if (data != null) {
@@ -85,7 +87,7 @@ class RetroCacheCall<T> implements CachedCall<T> {
      * @param callback  {@link Callback} to handle {@link Callback#onResponse} result.
      * @param isRefresh Mark if cache should be deleted.
      */
-    private void getFromServer(final Callback<T> callback, final boolean isRefresh) {
+    private void networkLoad(final Callback<T> callback, final boolean isRefresh) {
         mCall.enqueue(new Callback<T>() {
             @Override
             public void onResponse(final Call<T> call, final Response<T> response) {
@@ -161,13 +163,13 @@ class RetroCacheCall<T> implements CachedCall<T> {
 
     @Override
     public void enqueue(final Callback<T> callback) {
-        if (isCachingActive(request().method())) {
+        if (cachingActive) {
             // Look in cache if we are in a GET method
             new Thread(new Runnable() {
                 @Override
                 public void run() {
-                    if (!getFromCache(callback)) {
-                        getFromServer(callback, false);
+                    if (!cacheLoad(callback)) {
+                        networkLoad(callback, false);
                     }
                 }
             }).start();
@@ -178,11 +180,11 @@ class RetroCacheCall<T> implements CachedCall<T> {
 
     @Override
     public void refresh(final Callback<T> callback) {
-        if (isCachingActive(request().method())) {
+        if (cachingActive) {
             new Thread(new Runnable() {
                 @Override
                 public void run() {
-                    getFromServer(callback, true);
+                    networkLoad(callback, true);
                 }
             }).start();
             return;

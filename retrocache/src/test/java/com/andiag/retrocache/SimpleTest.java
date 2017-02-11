@@ -1,9 +1,8 @@
 package com.andiag.retrocache;
 
-import android.support.annotation.NonNull;
-
 import com.andiag.retrocache.annotations.Caching;
 import com.andiag.retrocache.interfaces.CachedCall;
+import com.andiag.retrocache.utils.MainThreadExecutor;
 import com.andiag.retrocache.utils.MockCachingSystem;
 import com.andiag.retrocache.utils.ToStringConverterFactory;
 import com.andiag.retrocache.utils.Utils;
@@ -13,7 +12,6 @@ import org.junit.Rule;
 import org.junit.Test;
 
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 
 import okhttp3.mockwebserver.MockResponse;
@@ -36,7 +34,7 @@ import static org.junit.Assert.fail;
  * Created by IagoCanalejas on 10/01/2017.
  */
 
-public class CallbackTest {
+public class SimpleTest {
     /***
      * Builds a Retrofit SmartCache factory without Android executor
      */
@@ -196,13 +194,6 @@ public class CallbackTest {
                 fail("Failure executing the request: " + t.getMessage());
             }
         });
-    }
-
-    private static class MainThreadExecutor implements Executor {
-        @Override
-        public void execute(@NonNull Runnable command) {
-            command.run();
-        }
     }
 
     interface DemoService {
