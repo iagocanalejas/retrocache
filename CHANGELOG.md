@@ -1,6 +1,6 @@
 # NEXT
     - Added `@Caching(enabled = false)` annotation. Used to disable cache for some `@GET` calls.
-    - `@Caching(enabled = true)` annotation can be now used to cach `@POST`, `@PUT` and `@DELETE`, disabled by default.
+    - `@Caching(enabled = true)` annotation can be now used to cach `@POST`, `@PUT` and `@DELETE`, disabled by default and not recomended.
 
 # 1.1.1
     - Added `clone()` method to `CachedCall` interface to avoid extra casting.

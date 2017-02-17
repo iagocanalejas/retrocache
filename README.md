@@ -100,6 +100,10 @@ You can also tell RetroCache when a call should be cached using `@Caching(active
         @GET("/")
         CachedCall<MyObject> getResource();
 
+        @Caching // Not recomended, this will not send the request to the server
+        @POST("/")
+        CachedCall<MyObject> postResource(...);
+
     }
     ```
 
