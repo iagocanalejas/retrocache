@@ -1,4 +1,4 @@
-package com.andiag.retrocache.utils;
+package com.andiag.retrocache.cache;
 
 import android.support.annotation.NonNull;
 

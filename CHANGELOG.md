@@ -1,6 +1,7 @@
 # NEXT
-    - Added `@Caching(enabled = false)` annotation. Used to disable cache for some `@GET` calls.
-    - `@Caching(enabled = true)` annotation can be now used to cach `@POST`, `@PUT` and `@DELETE`, disabled by default and not recomended.
+    - Renaming CachedCall<T> into Cached<T>
+    - Make RequestBuilder and ResponseUtils inner classes of CachedCall
+    - Implemented new tests matching Retrofit.
 
 # 1.1.1
     - Added `clone()` method to `CachedCall` interface to avoid extra casting.

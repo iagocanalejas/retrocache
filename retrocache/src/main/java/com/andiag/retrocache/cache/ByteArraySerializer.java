@@ -1,4 +1,4 @@
-package com.andiag.retrocache.utils;
+package com.andiag.retrocache.cache;
 
 import com.iagocanalejas.dualcache.interfaces.Serializer;
 

@@ -40,7 +40,7 @@ dependencies {
     public interface ApiService {
 
         @GET("/")
-        CachedCall<MyObject> getResource();
+        Cached<MyObject> getResource();
 
     }
     ```
@@ -84,27 +84,11 @@ dependencies {
 In addition to normal retrofit usage you can also call `refresh(callback)` to avoid looking in the cache or `remove()` to invalidate a cached call.
 
     ```java
-    CachedCall<MyObject> call = ...
+    Cached<MyObject> call = ...
     call.refresh(new Callback<MyObject>() {
        ...
     });
     call.remove();
-    ```
-
-You can also tell RetroCache when a call should be cached using `@Caching(active = true/false)`.
-
-    ```java
-    public interface ApiService {
-
-        @Caching(active = false)
-        @GET("/")
-        CachedCall<MyObject> getResource();
-
-        @Caching // Not recomended, this will not send the request to the server
-        @POST("/")
-        CachedCall<MyObject> postResource(...);
-
-    }
     ```
 
 **This feature is by default enabled to `@GET` and disabled for the rest of methods.**

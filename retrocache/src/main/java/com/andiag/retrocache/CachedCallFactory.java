@@ -6,8 +6,6 @@ import android.os.Looper;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
-import com.andiag.retrocache.cache.RetroCache;
-import com.andiag.retrocache.interfaces.CachedCall;
 import com.google.gson.reflect.TypeToken;
 import com.iagocanalejas.dualcache.interfaces.Cache;
 
@@ -51,11 +49,11 @@ public class CachedCallFactory extends CallAdapter.Factory {
     }
 
     @Override
-    public CallAdapter<CachedCall<?>> get(final Type returnType, final Annotation[] annotations,
-                                          final Retrofit retrofit) {
+    public CallAdapter<Cached<?>> get(final Type returnType, final Annotation[] annotations,
+                                      final Retrofit retrofit) {
 
         TypeToken<?> token = TypeToken.get(returnType);
-        if (token.getRawType() != CachedCall.class) {
+        if (token.getRawType() != Cached.class) {
             return null;
         }
 
@@ -64,15 +62,15 @@ public class CachedCallFactory extends CallAdapter.Factory {
                     "CachedCall must have generic type (e.g., CachedCall<ResponseBody>)");
         }
 
-        return new CallAdapter<CachedCall<?>>() {
+        return new CallAdapter<Cached<?>>() {
             @Override
             public Type responseType() {
                 return ((ParameterizedType) returnType).getActualTypeArguments()[0];
             }
 
             @Override
-            public <R> CachedCall<R> adapt(Call<R> call) {
-                return new RetroCacheCall<>(mAsyncExecutor, call, responseType(), annotations,
+            public <R> Cached<R> adapt(Call<R> call) {
+                return new CachedCall<>(mAsyncExecutor, call, responseType(), annotations,
                         retrofit, mCachingSystem);
             }
         };

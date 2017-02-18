@@ -1,4 +1,4 @@
-package com.andiag.retrocache.utils;
+package com.andiag.retrocache.cache;
 
 import android.support.annotation.NonNull;
 
@@ -12,7 +12,7 @@ import okhttp3.HttpUrl;
  * Created by Iago on 23/01/2017.
  */
 public class Utils {
-    public static String urlToKey(@NonNull String method, @NonNull HttpUrl url) {
-        return Hashing.sha1(method.concat(url.toString()), Charset.defaultCharset());
+    public static String urlToKey(@NonNull HttpUrl url) {
+        return Hashing.sha1(url.toString(), Charset.defaultCharset());
     }
 }

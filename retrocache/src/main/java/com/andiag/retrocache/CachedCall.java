@@ -1,25 +1,35 @@
 package com.andiag.retrocache;
 
-import com.andiag.retrocache.annotations.Caching;
-import com.andiag.retrocache.interfaces.CachedCall;
+import android.support.annotation.NonNull;
+import android.util.Log;
+
+import com.iagocanalejas.dualcache.hashing.Hashing;
 import com.iagocanalejas.dualcache.interfaces.Cache;
 
 import java.io.IOException;
 import java.lang.annotation.Annotation;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.lang.reflect.Type;
+import java.nio.charset.Charset;
 import java.util.concurrent.Executor;
 
+import okhttp3.HttpUrl;
 import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.ResponseBody;
+import okio.Buffer;
 import retrofit2.Call;
 import retrofit2.Callback;
+import retrofit2.Converter;
 import retrofit2.Response;
 import retrofit2.Retrofit;
 
 /**
  * Created by IagoCanalejas on 09/01/2017.
- * Handles the {@link CachedCall} requests
+ * Handles the {@link Cached} requests
  */
-class RetroCacheCall<T> implements CachedCall<T> {
+final class CachedCall<T> implements Cached<T> {
     private final Executor mExecutor;
     private final Call<T> mCall;
     private final Type mResponseType;
@@ -29,8 +39,11 @@ class RetroCacheCall<T> implements CachedCall<T> {
     private final Request mRequest;
     private final boolean cachingActive;
 
-    RetroCacheCall(Executor executor, Call<T> call, Type responseType, Annotation[] annotations,
-                   Retrofit retrofit, Cache<String, byte[]> cachingSystem) {
+    private boolean executed;
+    private boolean canceled;
+
+    CachedCall(Executor executor, Call<T> call, Type responseType, Annotation[] annotations,
+               Retrofit retrofit, Cache<String, byte[]> cachingSystem) {
         this.mExecutor = executor;
         this.mCall = call;
         this.mResponseType = responseType;
@@ -38,23 +51,10 @@ class RetroCacheCall<T> implements CachedCall<T> {
         this.mRetrofit = retrofit;
         this.mCachingSystem = cachingSystem;
         this.mRequest = RequestBuilder.build(call);
-        cachingActive = isCachingActive(mCall.request().method());
-    }
+        cachingActive = mRequest != null && mRequest.method().equals("GET");
 
-    /**
-     * Find caching value using {@link Caching} annotation in the call annotations.
-     *
-     * @param method REST
-     * @return annotation value if exist.
-     * If not, true for {@link retrofit2.http.GET}, false otherwise.
-     */
-    private boolean isCachingActive(String method) {
-        for (Annotation annotation : mAnnotations) {
-            if (annotation instanceof Caching) {
-                return ((Caching) annotation).enabled();
-            }
-        }
-        return method.equals("GET");
+        executed = mCall.isExecuted();
+        canceled = mCall.isCanceled();
     }
 
     /**
@@ -65,7 +65,7 @@ class RetroCacheCall<T> implements CachedCall<T> {
      */
     private boolean cacheLoad(final Callback<T> callback) {
         byte[] data = mCachingSystem.get(
-                ResponseUtils.urlToKey(request().method(), request().url()));
+                ResponseUtils.urlToKey(request().url()));
         if (data != null) {
             final T convertedData = ResponseUtils.bytesToResponse(
                     mRetrofit, mResponseType, mAnnotations, data);
@@ -97,18 +97,14 @@ class RetroCacheCall<T> implements CachedCall<T> {
                         if (response.isSuccessful()) {
                             // Add response to cache
                             mCachingSystem.put(
-                                    ResponseUtils.urlToKey(
-                                            call.request().method(),
-                                            response.raw().request().url()),
+                                    ResponseUtils.urlToKey(call.request().url()),
                                     ResponseUtils.responseToBytes(mRetrofit, response.body(),
                                             responseType(), mAnnotations));
                         }
                         if (!response.isSuccessful() && isRefresh) {
                             // If we are refreshing remove cache entry
                             mCachingSystem.remove(
-                                    ResponseUtils.urlToKey(
-                                            call.request().method(),
-                                            response.raw().request().url()));
+                                    ResponseUtils.urlToKey(call.request().url()));
                         }
                         callback.onResponse(call, response);
                     }
@@ -122,8 +118,7 @@ class RetroCacheCall<T> implements CachedCall<T> {
                     public void run() {
                         if (isRefresh) {
                             // If we are refreshing remove cache entry
-                            mCachingSystem.remove(ResponseUtils.urlToKey(call.request().method(),
-                                    call.request().url()));
+                            mCachingSystem.remove(ResponseUtils.urlToKey(call.request().url()));
                         }
                         callback.onFailure(call, t);
                     }
@@ -157,14 +152,10 @@ class RetroCacheCall<T> implements CachedCall<T> {
     }
 
     @Override
-    public boolean isExecuted() {
-        return mCall.isExecuted();
-    }
-
-    @Override
     public void enqueue(final Callback<T> callback) {
         if (cachingActive) {
             // Look in cache if we are in a GET method
+            executed = true;
             new Thread(new Runnable() {
                 @Override
                 public void run() {
@@ -181,6 +172,7 @@ class RetroCacheCall<T> implements CachedCall<T> {
     @Override
     public void refresh(final Callback<T> callback) {
         if (cachingActive) {
+            executed = true;
             new Thread(new Runnable() {
                 @Override
                 public void run() {
@@ -203,8 +195,8 @@ class RetroCacheCall<T> implements CachedCall<T> {
     }
 
     @Override
-    public CachedCall<T> clone() {
-        return new RetroCacheCall<>(mExecutor, mCall.clone(), responseType(),
+    public Cached<T> clone() {
+        return new CachedCall<>(mExecutor, mCall.clone(), responseType(),
                 mAnnotations, mRetrofit, mCachingSystem);
     }
 
@@ -215,17 +207,123 @@ class RetroCacheCall<T> implements CachedCall<T> {
 
     @Override
     public void remove() {
-        mCachingSystem.remove(ResponseUtils.urlToKey(
-                mCall.request().method(), mCall.request().url()));
+        mCachingSystem.remove(ResponseUtils.urlToKey(mCall.request().url()));
     }
 
     @Override
     public void cancel() {
+        this.canceled = true;
         mCall.cancel();
     }
 
     @Override
     public boolean isCanceled() {
-        return mCall.isCanceled();
+        return mCall.isCanceled() || canceled;
+    }
+
+    @Override
+    public boolean isExecuted() {
+        return mCall.isExecuted() || executed;
+    }
+
+    /**
+     * Created by IagoCanalejas on 02/02/2017.
+     * Required because {@link retrofit2.RequestBuilder} is final and package local
+     */
+    private static final class RequestBuilder {
+
+        private static Object[] getCallArgs(Call call)
+                throws NoSuchFieldException, IllegalAccessException {
+            Field argsField = call.getClass().getDeclaredField("args");
+            argsField.setAccessible(true);
+            return (Object[]) argsField.get(call);
+        }
+
+        private static Object getRequestFactory(Call call)
+                throws IllegalAccessException, NoSuchFieldException {
+            Field serviceMethodField = call.getClass().getDeclaredField("serviceMethod");
+            serviceMethodField.setAccessible(true);
+            return serviceMethodField.get(call);
+        }
+
+        static Request build(Call call) {
+            try {
+                Object requestFactory = getRequestFactory(call);
+                Method createMethod = requestFactory.getClass()
+                        .getDeclaredMethod("toRequest", Object[].class);
+
+                createMethod.setAccessible(true);
+
+                return (Request) createMethod.invoke(requestFactory, new Object[]{getCallArgs(call)});
+            } catch (Exception exc) {
+                return null;
+            }
+        }
+
+    }
+
+    /**
+     * Created by IagoCanalejas on 09/01/2017.
+     */
+    private static final class ResponseUtils {
+
+        @SuppressWarnings("unchecked")
+        static <T> byte[] responseToBytes(Retrofit retrofit, T data, Type dataType,
+                                          Annotation[] annotations) {
+            for (Converter.Factory factory : retrofit.converterFactories()) {
+                if (factory == null) {
+                    continue;
+                }
+                Converter<T, RequestBody> converter =
+                        (Converter<T, RequestBody>) factory.requestBodyConverter(
+                                dataType, annotations, null, retrofit);
+
+                if (converter != null) {
+                    Buffer buff = new Buffer();
+                    try {
+                        converter.convert(data).writeTo(buff);
+                    } catch (IOException ioException) {
+                        continue;
+                    }
+
+                    return buff.readByteArray();
+                }
+            }
+            return null;
+        }
+
+        @SuppressWarnings("unchecked")
+        static <T> T bytesToResponse(Retrofit retrofit, Type dataType, Annotation[] annotations,
+                                     byte[] data) {
+            for (Converter.Factory factory : retrofit.converterFactories()) {
+                if (factory == null) {
+                    continue;
+                }
+                Converter<ResponseBody, T> converter =
+                        (Converter<ResponseBody, T>) factory.responseBodyConverter(
+                                dataType, annotations, retrofit);
+
+                if (converter != null) {
+                    try {
+                        return converter.convert(ResponseBody.create(null, data));
+                    } catch (IOException | NullPointerException exc) {
+                        Log.e("CachedCall", "", exc);
+                    }
+                }
+            }
+
+            return null;
+        }
+
+        /**
+         * Hash the url concat the REST method used to work as cache key.
+         *
+         * @param url    requested
+         * @return hashed cache key
+         */
+        static String urlToKey(@NonNull HttpUrl url) {
+            return Hashing.sha1(url.toString(), Charset.defaultCharset());
+        }
+
     }
 }

@@ -1,4 +1,4 @@
-package com.andiag.retrocache.interfaces;
+package com.andiag.retrocache;
 
 
 import java.lang.reflect.Type;
@@ -11,7 +11,7 @@ import retrofit2.Callback;
  * Created by IagoCanalejas on 09/01/2017.
  * Interface replacing {@link retrofit2.Call} for Caching {@link Request}.
  */
-public interface CachedCall<T> extends Call<T>, Cloneable {
+public interface Cached<T> extends Call<T>, Cloneable {
 
     /**
      * Asynchronously send the request ignoring the cache and notify {@code callback} of its
@@ -35,6 +35,6 @@ public interface CachedCall<T> extends Call<T>, Cloneable {
      * Create a new, identical call to this one which can be enqueued or executed even if this call
      * has already been.
      */
-    CachedCall<T> clone();
+    Cached<T> clone();
 
 }
