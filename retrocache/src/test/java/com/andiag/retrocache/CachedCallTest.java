@@ -580,7 +580,7 @@ public class CachedCallTest {
     }
 
     @Test
-    public void cloningExecutedRequestDoesNotCopyState() throws IOException {
+    public void cloningExecutedRequestRetrieveCachedOne() throws IOException {
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(mServer.url("/"))
                 .addConverterFactory(new ToStringConverterFactory())
@@ -594,8 +594,10 @@ public class CachedCallTest {
         Cached<String> call = service.getString();
         assertThat(call.execute().body()).isEqualTo("Hi");
 
+        assertNotNull(mMockCachingSystem.get(Utils.urlToKey(call.request().url())));
+
         Cached<String> cloned = call.clone();
-        assertThat(cloned.execute().body()).isEqualTo("Hello");
+        assertThat(cloned.execute().body()).isEqualTo("Hi");
     }
 
     @Test

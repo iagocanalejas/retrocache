@@ -37,10 +37,10 @@ final class CachedCallAdapter<T> implements Cached<T> {
     private final Retrofit mRetrofit;
     private final Cache<String, byte[]> mCachingSystem;
     private final Request mRequest;
-    private final boolean cachingActive;
+    private final boolean mCachingActive;
 
-    private boolean executed;
-    private boolean canceled;
+    private boolean mExecuted;
+    private boolean mCanceled;
 
     CachedCallAdapter(Executor executor, Call<T> call, Type responseType, Annotation[] annotations,
                       Retrofit retrofit, Cache<String, byte[]> cachingSystem) {
@@ -51,10 +51,10 @@ final class CachedCallAdapter<T> implements Cached<T> {
         this.mRetrofit = retrofit;
         this.mCachingSystem = cachingSystem;
         this.mRequest = RequestBuilder.build(call);
-        cachingActive = mRequest != null && mRequest.method().equals("GET");
+        mCachingActive = mRequest != null && mRequest.method().equals("GET");
 
-        executed = mCall.isExecuted();
-        canceled = mCall.isCanceled();
+        mExecuted = mCall.isExecuted();
+        mCanceled = mCall.isCanceled();
     }
 
     /**
@@ -97,14 +97,14 @@ final class CachedCallAdapter<T> implements Cached<T> {
                         if (response.isSuccessful()) {
                             // Add response to cache
                             mCachingSystem.put(
-                                    ResponseUtils.urlToKey(call.request().url()),
+                                    ResponseUtils.urlToKey(mCall.request().url()),
                                     ResponseUtils.responseToBytes(mRetrofit, response.body(),
                                             responseType(), mAnnotations));
                         }
                         if (!response.isSuccessful() && isRefresh) {
                             // If we are refreshing remove cache entry
                             mCachingSystem.remove(
-                                    ResponseUtils.urlToKey(call.request().url()));
+                                    ResponseUtils.urlToKey(mCall.request().url()));
                         }
                         callback.onResponse(call, response);
                     }
@@ -118,7 +118,7 @@ final class CachedCallAdapter<T> implements Cached<T> {
                     public void run() {
                         if (isRefresh) {
                             // If we are refreshing remove cache entry
-                            mCachingSystem.remove(ResponseUtils.urlToKey(call.request().url()));
+                            mCachingSystem.remove(ResponseUtils.urlToKey(mCall.request().url()));
                         }
                         callback.onFailure(call, t);
                     }
@@ -153,9 +153,16 @@ final class CachedCallAdapter<T> implements Cached<T> {
 
     @Override
     public void enqueue(final Callback<T> callback) {
-        if (cachingActive) {
+        if (callback == null) {
+            throw new NullPointerException("callback == null");
+        }
+        if (mExecuted || mCall.isExecuted()) {
+            throw new IllegalStateException("Already executed.");
+        }
+
+        mExecuted = true;
+        if (mCachingActive) {
             // Look in cache if we are in a GET method
-            executed = true;
             new Thread(new Runnable() {
                 @Override
                 public void run() {
@@ -171,8 +178,15 @@ final class CachedCallAdapter<T> implements Cached<T> {
 
     @Override
     public void refresh(final Callback<T> callback) {
-        if (cachingActive) {
-            executed = true;
+        if (callback == null) {
+            throw new NullPointerException("callback == null");
+        }
+        if (mExecuted || mCall.isExecuted()) {
+            throw new IllegalStateException("Already executed.");
+        }
+
+        mExecuted = true;
+        if (mCachingActive) {
             new Thread(new Runnable() {
                 @Override
                 public void run() {
@@ -202,6 +216,28 @@ final class CachedCallAdapter<T> implements Cached<T> {
 
     @Override
     public Response<T> execute() throws IOException {
+        if (mExecuted || mCall.isExecuted()) {
+            throw new IllegalStateException("Already executed.");
+        }
+
+        mExecuted = true;
+        if (mCachingActive) {
+            byte[] data = mCachingSystem.get(ResponseUtils.urlToKey(mCall.request().url()));
+            if (data == null) { // Response is not cached
+                Response<T> response = mCall.execute();
+                if (response.isSuccessful()) {
+                    mCachingSystem.put(
+                            ResponseUtils.urlToKey(mCall.request().url()),
+                            ResponseUtils.responseToBytes(mRetrofit, response.body(),
+                                    responseType(), mAnnotations));
+                }
+                return response;
+            }
+            // Response is cached
+            final T convertedData = ResponseUtils.bytesToResponse(
+                    mRetrofit, mResponseType, mAnnotations, data);
+            return Response.success(convertedData);
+        }
         return mCall.execute();
     }
 
@@ -212,18 +248,18 @@ final class CachedCallAdapter<T> implements Cached<T> {
 
     @Override
     public void cancel() {
-        this.canceled = true;
+        this.mCanceled = true;
         mCall.cancel();
     }
 
     @Override
     public boolean isCanceled() {
-        return mCall.isCanceled() || canceled;
+        return mCall.isCanceled() || mCanceled;
     }
 
     @Override
     public boolean isExecuted() {
-        return mCall.isExecuted() || executed;
+        return mCall.isExecuted() || mExecuted;
     }
 
     /**
@@ -254,7 +290,8 @@ final class CachedCallAdapter<T> implements Cached<T> {
 
                 createMethod.setAccessible(true);
 
-                return (Request) createMethod.invoke(requestFactory, new Object[]{getCallArgs(call)});
+                return (Request) createMethod.invoke(
+                        requestFactory, new Object[]{getCallArgs(call)});
             } catch (Exception exc) {
                 return null;
             }
@@ -270,6 +307,10 @@ final class CachedCallAdapter<T> implements Cached<T> {
         @SuppressWarnings("unchecked")
         static <T> byte[] responseToBytes(Retrofit retrofit, T data, Type dataType,
                                           Annotation[] annotations) {
+            if (data == null) {
+                return null;
+            }
+
             for (Converter.Factory factory : retrofit.converterFactories()) {
                 if (factory == null) {
                     continue;
@@ -318,7 +359,7 @@ final class CachedCallAdapter<T> implements Cached<T> {
         /**
          * Hash the url concat the REST method used to work as cache key.
          *
-         * @param url    requested
+         * @param url requested
          * @return hashed cache key
          */
         static String urlToKey(@NonNull HttpUrl url) {

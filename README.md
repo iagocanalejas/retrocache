@@ -70,7 +70,7 @@ dependencies {
     For see default values in this caches take a look at [RetroCache](retrocache/src/main/java/com/andiag/retrocache/cache/RetroCache.java)
 
     **Important**
-    - APP_VERSION is a static integer. When APP_VERSION changes all caches are automatically cleared. It's recommended to use BuildConfig.VERSION_CODE as BuildConfig.VERSION_CODE
+    - APP_VERSION is a static integer. When APP_VERSION changes the cache is automatically cleared. It's recommended to use BuildConfig.VERSION_CODE as APP_VERSION
 
 3. Add the cache to your Retrofit service.
 
@@ -78,7 +78,7 @@ dependencies {
     retrofitBuilder.addCallAdapterFactory(new CachedCallAdapterFactory(mCache));
     ```
 
-4. Use it as normal retrofit. Just remember to use `CachedCall`. All retrofit methods are included, and you can also use methods included in `Included` section.
+4. Use it as normal retrofit. Just remember to use `Cached`. All retrofit methods are included, and you can also use methods explained in `Included` section.
 
 # Included
 In addition to normal retrofit usage you can also call `refresh(callback)` to avoid looking in the cache or `remove()` to invalidate a cached call.
