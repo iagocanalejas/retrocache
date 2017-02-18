@@ -6,7 +6,7 @@ import android.os.Looper;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
-import com.google.gson.reflect.TypeToken;
+import com.google.common.reflect.TypeToken;
 import com.iagocanalejas.dualcache.interfaces.Cache;
 
 import java.lang.annotation.Annotation;
@@ -52,7 +52,7 @@ public class CachedCallAdapterFactory extends CallAdapter.Factory {
     public CallAdapter<Cached<?>> get(final Type returnType, final Annotation[] annotations,
                                       final Retrofit retrofit) {
 
-        TypeToken<?> token = TypeToken.get(returnType);
+        TypeToken<?> token = TypeToken.of(returnType);
         if (token.getRawType() != Cached.class) {
             return null;
         }

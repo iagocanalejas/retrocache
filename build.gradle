@@ -17,9 +17,11 @@ ext {
 
     // Library
     retrofit = '2.1.0'
-    gsonVersion = '2.8.0'
+    retrofitSnapshot = '2.2.0-SNAPSHOT'
+    google = '21.0'
     dualcache = '1.3'
     okhttp = '3.6.0'
+    rxjava = '2.0.6'
 
 }
 
@@ -37,6 +39,7 @@ allprojects {
     repositories {
         jcenter()
         maven { url 'https://jitpack.io' }
+        maven { url 'https://oss.sonatype.org/content/repositories/snapshots/' }
     }
 }
 

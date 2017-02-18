@@ -32,7 +32,7 @@ dependencies {
     testCompile "org.mockito:mockito-core:$mockito"
 
     compile "com.android.support:support-annotations:$supportLib"
-    compile "com.google.code.gson:gson:$gsonVersion"
+    compile "com.google.guava:guava:$google"
     compile("com.squareup.retrofit2:retrofit:$retrofit") {
         exclude module: 'okhttp'
     }
