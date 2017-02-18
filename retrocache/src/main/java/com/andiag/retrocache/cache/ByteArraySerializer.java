@@ -1,11 +1,11 @@
-package com.andiag.retrocache.utils;
+package com.andiag.retrocache.cache;
 
 import com.iagocanalejas.dualcache.interfaces.Serializer;
 
 import java.nio.charset.Charset;
 
 /**
- * Created by Canalejas on 12/01/2017.
+ * Created by IagoCanalejas on 12/01/2017.
  * Basic parser that encode and decode byte[] matching default charset
  */
 public class ByteArraySerializer implements Serializer<byte[]> {

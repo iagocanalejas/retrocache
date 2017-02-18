@@ -1,10 +1,10 @@
-package com.andiag.retrocache.cache;
+package com.andiag.retrocache;
 
 import android.content.Context;
 import android.support.annotation.NonNull;
 
-import com.andiag.retrocache.utils.ByteArraySerializer;
-import com.andiag.retrocache.utils.EntryCountSizeOf;
+import com.andiag.retrocache.cache.ByteArraySerializer;
+import com.andiag.retrocache.cache.EntryCountSizeOf;
 import com.iagocanalejas.dualcache.Builder;
 import com.iagocanalejas.dualcache.DualCache;
 

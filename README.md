@@ -40,7 +40,7 @@ dependencies {
     public interface ApiService {
 
         @GET("/")
-        CachedCall<MyObject> getResource();
+        Cached<MyObject> getResource();
 
     }
     ```
@@ -70,23 +70,28 @@ dependencies {
     For see default values in this caches take a look at [RetroCache](retrocache/src/main/java/com/andiag/retrocache/cache/RetroCache.java)
 
     **Important**
-    - APP_VERSION is a static integer. When APP_VERSION changes all caches are automatically cleared. It's recommended to use BuildConfig.VERSION_CODE as BuildConfig.VERSION_CODE
+    - APP_VERSION is a static integer. When APP_VERSION changes the cache is automatically cleared. It's recommended to use BuildConfig.VERSION_CODE as APP_VERSION
 
 3. Add the cache to your Retrofit service.
 
     ```java
-    retrofitBuilder.addCallAdapterFactory(new CachedCallFactory(mCache));
+    retrofitBuilder.addCallAdapterFactory(new CachedCallAdapterFactory(mCache));
     ```
 
-4. Use it as normal retrofit. Just remember to use `CachedCall`. All retrofit methods are included, and you can also call `refresh(callback)` to avoid looking in the cache or `remove()` to invalidate a cached call.
+4. Use it as normal retrofit. Just remember to use `Cached`. All retrofit methods are included, and you can also use methods explained in `Included` section.
+
+# Included
+In addition to normal retrofit usage you can also call `refresh(callback)` to avoid looking in the cache or `remove()` to invalidate a cached call.
 
     ```java
-       CachedCall<MyObject> call = ...
-       call.refresh(new Callback<MyObject>() {
-           ...
-       });
-       call.remove();
+    Cached<MyObject> call = ...
+    call.refresh(new Callback<MyObject>() {
+       ...
+    });
+    call.remove();
     ```
+
+**This feature is by default enabled to `@GET` and disabled for the rest of methods.**
 
 # Pull Requests
 I welcome and encourage all pull requests. Here are some basic rules to follow to ensure timely addition of your request:
