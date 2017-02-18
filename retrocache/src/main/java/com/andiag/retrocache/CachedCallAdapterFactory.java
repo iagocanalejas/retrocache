@@ -18,11 +18,11 @@ import retrofit2.Call;
 import retrofit2.CallAdapter;
 import retrofit2.Retrofit;
 
-public class CachedCallFactory extends CallAdapter.Factory {
+public class CachedCallAdapterFactory extends CallAdapter.Factory {
     private final Cache<String, byte[]> mCachingSystem;
     private final Executor mAsyncExecutor;
 
-    public CachedCallFactory(@NonNull Context context, int appVersion) {
+    public CachedCallAdapterFactory(@NonNull Context context, int appVersion) {
         this.mCachingSystem = RetroCache.getDualCache(context, appVersion);
         this.mAsyncExecutor = new Executor() {
             @Override
@@ -32,7 +32,7 @@ public class CachedCallFactory extends CallAdapter.Factory {
         };
     }
 
-    public CachedCallFactory(@NonNull Cache<String, byte[]> cachingSystem) {
+    public CachedCallAdapterFactory(@NonNull Cache<String, byte[]> cachingSystem) {
         this.mCachingSystem = cachingSystem;
         this.mAsyncExecutor = new Executor() {
             @Override
@@ -42,8 +42,8 @@ public class CachedCallFactory extends CallAdapter.Factory {
         };
     }
 
-    public CachedCallFactory(@NonNull Cache<String, byte[]> cachingSystem,
-                             @Nullable Executor executor) {
+    public CachedCallAdapterFactory(@NonNull Cache<String, byte[]> cachingSystem,
+                                    @Nullable Executor executor) {
         this.mCachingSystem = cachingSystem;
         this.mAsyncExecutor = executor;
     }
@@ -70,7 +70,7 @@ public class CachedCallFactory extends CallAdapter.Factory {
 
             @Override
             public <R> Cached<R> adapt(Call<R> call) {
-                return new CachedCall<>(mAsyncExecutor, call, responseType(), annotations,
+                return new CachedCallAdapter<>(mAsyncExecutor, call, responseType(), annotations,
                         retrofit, mCachingSystem);
             }
         };

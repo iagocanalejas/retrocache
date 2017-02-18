@@ -29,7 +29,7 @@ import retrofit2.Retrofit;
  * Created by IagoCanalejas on 09/01/2017.
  * Handles the {@link Cached} requests
  */
-final class CachedCall<T> implements Cached<T> {
+final class CachedCallAdapter<T> implements Cached<T> {
     private final Executor mExecutor;
     private final Call<T> mCall;
     private final Type mResponseType;
@@ -42,8 +42,8 @@ final class CachedCall<T> implements Cached<T> {
     private boolean executed;
     private boolean canceled;
 
-    CachedCall(Executor executor, Call<T> call, Type responseType, Annotation[] annotations,
-               Retrofit retrofit, Cache<String, byte[]> cachingSystem) {
+    CachedCallAdapter(Executor executor, Call<T> call, Type responseType, Annotation[] annotations,
+                      Retrofit retrofit, Cache<String, byte[]> cachingSystem) {
         this.mExecutor = executor;
         this.mCall = call;
         this.mResponseType = responseType;
@@ -196,7 +196,7 @@ final class CachedCall<T> implements Cached<T> {
 
     @Override
     public Cached<T> clone() {
-        return new CachedCall<>(mExecutor, mCall.clone(), responseType(),
+        return new CachedCallAdapter<>(mExecutor, mCall.clone(), responseType(),
                 mAnnotations, mRetrofit, mCachingSystem);
     }
 

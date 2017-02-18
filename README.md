@@ -75,7 +75,7 @@ dependencies {
 3. Add the cache to your Retrofit service.
 
     ```java
-    retrofitBuilder.addCallAdapterFactory(new CachedCallFactory(mCache));
+    retrofitBuilder.addCallAdapterFactory(new CachedCallAdapterFactory(mCache));
     ```
 
 4. Use it as normal retrofit. Just remember to use `CachedCall`. All retrofit methods are included, and you can also use methods included in `Included` section.
