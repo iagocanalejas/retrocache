@@ -91,8 +91,6 @@ In addition to normal retrofit usage you can also call `refresh(callback)` to av
     call.remove();
     ```
 
-**This feature is by default enabled to `@GET` and disabled for the rest of methods.**
-
 # Pull Requests
 I welcome and encourage all pull requests. Here are some basic rules to follow to ensure timely addition of your request:
   1. Match coding style (braces, spacing, etc.) This is best achieved using CMD+Option+L (on Mac) or Ctrl+Alt+L on Windows to reformat code with Android Studio defaults.
