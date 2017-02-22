@@ -5,6 +5,8 @@ Android RetroCache
 [![](https://jitpack.io/v/iagocanalejas/retrocache.svg)](https://jitpack.io/#iagocanalejas/retrocache)
 [![Android Arsenal](https://img.shields.io/badge/Android%20Arsenal-RetroCache-brightgreen.svg?style=flat)](https://android-arsenal.com/details/1/5064)
 
+[![paypal](https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif)](https://www.paypal.me/ISantosDominguez)
+
 # Description
 This library provide an easy way for configure retrofit with a 2 layer cache (RAM and Disk).
 To see more details about the cache used visit [DualCache](https://github.com/iagocanalejas/dualcache)
