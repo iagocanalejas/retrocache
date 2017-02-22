@@ -74,10 +74,12 @@ dependencies {
     **Important**
     - APP_VERSION is a static integer. When APP_VERSION changes the cache is automatically cleared. It's recommended to use BuildConfig.VERSION_CODE as APP_VERSION
 
-3. Add the cache to your Retrofit service.
+3. Add the cache to your Retrofit service with one of the following methods.
 
     ```java
-    retrofitBuilder.addCallAdapterFactory(new CachedCallAdapterFactory(mCache));
+    retrofitBuilder.addCallAdapterFactory(CachedCallAdapterFactory.create(cache));
+    retrofitBuilder.addCallAdapterFactory(CachedCallAdapterFactory.create(context, APP_VERSION));
+    retrofitBuilder.addCallAdapterFactory(CachedCallAdapterFactory.createWithExecutor(cache, executor));
     ```
 
 4. Use it as normal retrofit. Just remember to use `Cached`. All retrofit methods are included, and you can also use methods explained in `Included` section.

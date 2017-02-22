@@ -64,7 +64,7 @@ public class CachedCallTest {
     }
 
     private CallAdapter.Factory buildSmartCacheFactory() {
-        return new CachedCallAdapterFactory(mMockCachingSystem, new MainThreadExecutor());
+        return CachedCallAdapterFactory.createWithExecutor(mMockCachingSystem, new MainThreadExecutor());
     }
 
     @Test

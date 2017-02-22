@@ -21,12 +21,13 @@ public class CachedCallAdapterFactory extends CallAdapter.Factory {
     private final Cache<String, byte[]> mCachingSystem;
     private final Executor mAsyncExecutor;
 
-    public CachedCallAdapterFactory(@NonNull Context context, int appVersion) {
-        this(RetroCache.getDualCache(context, appVersion));
+    private CachedCallAdapterFactory(@NonNull Cache<String, byte[]> cachingSystem, @Nullable Executor executor) {
+        this.mCachingSystem = cachingSystem;
+        this.mAsyncExecutor = executor;
     }
 
-    public CachedCallAdapterFactory(@NonNull Cache<String, byte[]> cachingSystem) {
-        this(cachingSystem, new Executor() {
+    public static CachedCallAdapterFactory create(@NonNull Context context, int appVersion) {
+        return new CachedCallAdapterFactory(RetroCache.getDualCache(context, appVersion), new Executor() {
             @Override
             public void execute(@NonNull Runnable command) {
                 new Handler(Looper.getMainLooper()).post(command);
@@ -34,9 +35,17 @@ public class CachedCallAdapterFactory extends CallAdapter.Factory {
         });
     }
 
-    public CachedCallAdapterFactory(@NonNull Cache<String, byte[]> cachingSystem, @Nullable Executor executor) {
-        this.mCachingSystem = cachingSystem;
-        this.mAsyncExecutor = executor;
+    public static CachedCallAdapterFactory create(@NonNull Cache<String, byte[]> cachingSystem) {
+        return new CachedCallAdapterFactory(cachingSystem, new Executor() {
+            @Override
+            public void execute(@NonNull Runnable command) {
+                new Handler(Looper.getMainLooper()).post(command);
+            }
+        });
+    }
+
+    public static CachedCallAdapterFactory createWithExecutor(@NonNull Cache<String, byte[]> cachingSystem, @NonNull Executor executor) {
+        return new CachedCallAdapterFactory(cachingSystem, executor);
     }
 
     @Override
