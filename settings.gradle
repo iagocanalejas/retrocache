@@ -1,1 +1,1 @@
-include ':retrocache'
+include ':retrocache', ':retrocache-rxjava2', ':commons'

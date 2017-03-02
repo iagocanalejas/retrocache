@@ -5,6 +5,8 @@ Android RetroCache
 [![](https://jitpack.io/v/iagocanalejas/retrocache.svg)](https://jitpack.io/#iagocanalejas/retrocache)
 [![Android Arsenal](https://img.shields.io/badge/Android%20Arsenal-RetroCache-brightgreen.svg?style=flat)](https://android-arsenal.com/details/1/5064)
 
+[![paypal](https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif)](https://www.paypal.me/ISantosDominguez)
+
 # Description
 This library provide an easy way for configure retrofit with a 2 layer cache (RAM and Disk).
 To see more details about the cache used visit [DualCache](https://github.com/iagocanalejas/dualcache)
@@ -72,10 +74,12 @@ dependencies {
     **Important**
     - APP_VERSION is a static integer. When APP_VERSION changes the cache is automatically cleared. It's recommended to use BuildConfig.VERSION_CODE as APP_VERSION
 
-3. Add the cache to your Retrofit service.
+3. Add the cache to your Retrofit service with one of the following methods.
 
     ```java
-    retrofitBuilder.addCallAdapterFactory(new CachedCallAdapterFactory(mCache));
+    retrofitBuilder.addCallAdapterFactory(CachedCallAdapterFactory.create(cache));
+    retrofitBuilder.addCallAdapterFactory(CachedCallAdapterFactory.create(context, APP_VERSION));
+    retrofitBuilder.addCallAdapterFactory(CachedCallAdapterFactory.createWithExecutor(cache, executor));
     ```
 
 4. Use it as normal retrofit. Just remember to use `Cached`. All retrofit methods are included, and you can also use methods explained in `Included` section.
@@ -90,6 +94,25 @@ In addition to normal retrofit usage you can also call `refresh(callback)` to av
     });
     call.remove();
     ```
+
+# RX-Java2
+RxJava2 adapter is still in beta. You can use it as normal [retrofit rxjava2 adapter](https://github.com/square/retrofit/tree/master/retrofit-adapters/rxjava2) just add your adapter like:
+
+    ```java
+    retrofitBuilder.addCallAdapterFactory(RxJava2CachedCallAdapterFactory.create(cache));
+    retrofitBuilder.addCallAdapterFactory(RxJava2CachedCallAdapterFactory.create(context, APP_VERSION));
+    retrofitBuilder.addCallAdapterFactory(RxJava2CachedCallAdapterFactory.createAsync(cache));
+    retrofitBuilder.addCallAdapterFactory(RxJava2CachedCallAdapterFactory.createAsync(context, APP_VERSION));
+    retrofitBuilder.addCallAdapterFactory(RxJava2CachedCallAdapterFactory.createWithScheduler(cache, scheduler));
+    retrofitBuilder.addCallAdapterFactory(RxJava2CachedCallAdapterFactory.createWithScheduler(context, APP_VERSION, scheduler));
+    ```
+
+Don't forget to include dependency:
+```gradle
+dependencies {
+    compile 'com.github.iagocanalejas:retrocache-rxjava2:<VERSION>'
+}
+```
 
 # Pull Requests
 I welcome and encourage all pull requests. Here are some basic rules to follow to ensure timely addition of your request:

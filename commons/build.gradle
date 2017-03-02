@@ -2,8 +2,6 @@ apply plugin: 'com.android.library'
 apply plugin: 'com.github.dcendents.android-maven'
 apply from: '../quality/quality.gradle'
 
-group = 'com.github.iagocanalejas'
-
 android {
     compileSdkVersion project.compileSdkVersion
     buildToolsVersion project.buildToolsVersion
@@ -26,13 +24,9 @@ android {
 }
 
 dependencies {
-    testCompile 'junit:junit:4.12'
-    testCompile "com.squareup.okhttp3:mockwebserver:$mockwebserver"
-    testCompile "org.assertj:assertj-core:$assertj"
-    testCompile "org.mockito:mockito-core:$mockito"
-
-    compile "com.google.guava:guava:$google"
-    compile project(':commons')
+    compile "com.android.support:support-annotations:$supportLib"
+    compile "com.github.iagocanalejas.dualcache:dualcache:$dualcache"
+    compile "com.squareup.retrofit2:retrofit:$retrofit"
 }
 
 task javadoc(type: Javadoc) {
