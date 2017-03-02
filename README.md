@@ -95,6 +95,18 @@ In addition to normal retrofit usage you can also call `refresh(callback)` to av
     call.remove();
     ```
 
+# RX-Java2
+RxJava2 adapter is still in beta. You can use it as normal [retrofit rxjava2 adapter](https://github.com/square/retrofit/tree/master/retrofit-adapters/rxjava2) just add your adapter like:
+
+    ```java
+    retrofitBuilder.addCallAdapterFactory(RxJava2CachedCallAdapterFactory.create(cache));
+    retrofitBuilder.addCallAdapterFactory(RxJava2CachedCallAdapterFactory.create(context, APP_VERSION));
+    retrofitBuilder.addCallAdapterFactory(RxJava2CachedCallAdapterFactory.createAsync(cache));
+    retrofitBuilder.addCallAdapterFactory(RxJava2CachedCallAdapterFactory.createAsync(context, APP_VERSION));
+    retrofitBuilder.addCallAdapterFactory(RxJava2CachedCallAdapterFactory.createWithScheduler(cache, scheduler));
+    retrofitBuilder.addCallAdapterFactory(RxJava2CachedCallAdapterFactory.createWithScheduler(context, APP_VERSION, scheduler));
+    ```
+
 # Pull Requests
 I welcome and encourage all pull requests. Here are some basic rules to follow to ensure timely addition of your request:
   1. Match coding style (braces, spacing, etc.) This is best achieved using CMD+Option+L (on Mac) or Ctrl+Alt+L on Windows to reformat code with Android Studio defaults.

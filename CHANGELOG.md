@@ -1,4 +1,8 @@
-# NEXT
+# 1.3
+    - Implemented rx-java2 CachedCall adapter
+    - Moving classes to commons module
+    - Renaming some classes
+# 1.2
     - Renaming CachedCall<T> into Cached<T>
     - Make RequestBuilder and ResponseUtils inner classes of CachedCall
     - Implemented new tests matching Retrofit.

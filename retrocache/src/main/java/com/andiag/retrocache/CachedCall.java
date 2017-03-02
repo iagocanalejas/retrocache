@@ -1,9 +1,6 @@
 package com.andiag.retrocache;
 
-import android.support.annotation.NonNull;
-import android.util.Log;
-
-import com.iagocanalejas.dualcache.hashing.Hashing;
+import com.andiag.commons.CacheUtils;
 import com.iagocanalejas.dualcache.interfaces.Cache;
 
 import java.io.IOException;
@@ -11,17 +8,11 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
-import java.nio.charset.Charset;
 import java.util.concurrent.Executor;
 
-import okhttp3.HttpUrl;
 import okhttp3.Request;
-import okhttp3.RequestBody;
-import okhttp3.ResponseBody;
-import okio.Buffer;
 import retrofit2.Call;
 import retrofit2.Callback;
-import retrofit2.Converter;
 import retrofit2.Response;
 import retrofit2.Retrofit;
 
@@ -42,8 +33,7 @@ final class CachedCall<T> implements Cached<T> {
     private boolean mExecuted;
     private boolean mCanceled;
 
-    CachedCall(Executor executor, Call<T> call, Type responseType, Annotation[] annotations,
-               Retrofit retrofit, Cache<String, byte[]> cachingSystem) {
+    CachedCall(Executor executor, Call<T> call, Type responseType, Annotation[] annotations, Retrofit retrofit, Cache<String, byte[]> cachingSystem) {
         this.mExecutor = executor;
         this.mCall = call;
         this.mResponseType = responseType;
@@ -64,11 +54,9 @@ final class CachedCall<T> implements Cached<T> {
      * @return True if found on cache. False otherwise.
      */
     private boolean cacheLoad(final Callback<T> callback) {
-        byte[] data = mCachingSystem.get(
-                ResponseUtils.urlToKey(request().url()));
+        byte[] data = mCachingSystem.get(CacheUtils.urlToKey(request().url()));
         if (data != null) {
-            final T convertedData = ResponseUtils.bytesToResponse(
-                    mRetrofit, mResponseType, mAnnotations, data);
+            final T convertedData = CacheUtils.bytesToResponse(mRetrofit, mResponseType, mAnnotations, data);
 
             mExecutor.execute(new Runnable() {
                 @Override
@@ -97,14 +85,14 @@ final class CachedCall<T> implements Cached<T> {
                         if (response.isSuccessful()) {
                             // Add response to cache
                             mCachingSystem.put(
-                                    ResponseUtils.urlToKey(mCall.request().url()),
-                                    ResponseUtils.responseToBytes(mRetrofit, response.body(),
+                                    CacheUtils.urlToKey(mCall.request().url()),
+                                    CacheUtils.responseToBytes(mRetrofit, response.body(),
                                             responseType(), mAnnotations));
                         }
                         if (!response.isSuccessful() && isRefresh) {
                             // If we are refreshing remove cache entry
                             mCachingSystem.remove(
-                                    ResponseUtils.urlToKey(mCall.request().url()));
+                                    CacheUtils.urlToKey(mCall.request().url()));
                         }
                         callback.onResponse(call, response);
                     }
@@ -118,7 +106,7 @@ final class CachedCall<T> implements Cached<T> {
                     public void run() {
                         if (isRefresh) {
                             // If we are refreshing remove cache entry
-                            mCachingSystem.remove(ResponseUtils.urlToKey(mCall.request().url()));
+                            mCachingSystem.remove(CacheUtils.urlToKey(mCall.request().url()));
                         }
                         callback.onFailure(call, t);
                     }
@@ -222,19 +210,19 @@ final class CachedCall<T> implements Cached<T> {
 
         mExecuted = true;
         if (mCachingActive) {
-            byte[] data = mCachingSystem.get(ResponseUtils.urlToKey(mCall.request().url()));
+            byte[] data = mCachingSystem.get(CacheUtils.urlToKey(mCall.request().url()));
             if (data == null) { // Response is not cached
                 Response<T> response = mCall.execute();
                 if (response.isSuccessful()) {
                     mCachingSystem.put(
-                            ResponseUtils.urlToKey(mCall.request().url()),
-                            ResponseUtils.responseToBytes(mRetrofit, response.body(),
+                            CacheUtils.urlToKey(mCall.request().url()),
+                            CacheUtils.responseToBytes(mRetrofit, response.body(),
                                     responseType(), mAnnotations));
                 }
                 return response;
             }
             // Response is cached
-            final T convertedData = ResponseUtils.bytesToResponse(
+            final T convertedData = CacheUtils.bytesToResponse(
                     mRetrofit, mResponseType, mAnnotations, data);
             return Response.success(convertedData);
         }
@@ -243,7 +231,7 @@ final class CachedCall<T> implements Cached<T> {
 
     @Override
     public void remove() {
-        mCachingSystem.remove(ResponseUtils.urlToKey(mCall.request().url()));
+        mCachingSystem.remove(CacheUtils.urlToKey(mCall.request().url()));
     }
 
     @Override
@@ -299,72 +287,4 @@ final class CachedCall<T> implements Cached<T> {
 
     }
 
-    /**
-     * Created by IagoCanalejas on 09/01/2017.
-     */
-    private static final class ResponseUtils {
-
-        @SuppressWarnings("unchecked")
-        static <T> byte[] responseToBytes(Retrofit retrofit, T data, Type dataType,
-                                          Annotation[] annotations) {
-            if (data == null) {
-                return null;
-            }
-
-            for (Converter.Factory factory : retrofit.converterFactories()) {
-                if (factory == null) {
-                    continue;
-                }
-                Converter<T, RequestBody> converter =
-                        (Converter<T, RequestBody>) factory.requestBodyConverter(
-                                dataType, annotations, null, retrofit);
-
-                if (converter != null) {
-                    Buffer buff = new Buffer();
-                    try {
-                        converter.convert(data).writeTo(buff);
-                    } catch (IOException ioException) {
-                        continue;
-                    }
-
-                    return buff.readByteArray();
-                }
-            }
-            return null;
-        }
-
-        @SuppressWarnings("unchecked")
-        static <T> T bytesToResponse(Retrofit retrofit, Type dataType, Annotation[] annotations,
-                                     byte[] data) {
-            for (Converter.Factory factory : retrofit.converterFactories()) {
-                if (factory == null) {
-                    continue;
-                }
-                Converter<ResponseBody, T> converter =
-                        (Converter<ResponseBody, T>) factory.responseBodyConverter(
-                                dataType, annotations, retrofit);
-
-                if (converter != null) {
-                    try {
-                        return converter.convert(ResponseBody.create(null, data));
-                    } catch (IOException | NullPointerException exc) {
-                        Log.e("CachedCall", "", exc);
-                    }
-                }
-            }
-
-            return null;
-        }
-
-        /**
-         * Hash the url concat the REST method used to work as cache key.
-         *
-         * @param url requested
-         * @return hashed cache key
-         */
-        static String urlToKey(@NonNull HttpUrl url) {
-            return Hashing.sha1(url.toString(), Charset.defaultCharset());
-        }
-
-    }
 }

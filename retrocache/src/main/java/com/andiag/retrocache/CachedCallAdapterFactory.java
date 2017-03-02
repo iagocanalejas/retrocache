@@ -6,6 +6,7 @@ import android.os.Looper;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
+import com.andiag.commons.RetroCache;
 import com.google.common.reflect.TypeToken;
 import com.iagocanalejas.dualcache.interfaces.Cache;
 

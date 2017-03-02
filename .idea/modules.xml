@@ -3,7 +3,9 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/RetroCache.iml" filepath="$PROJECT_DIR$/RetroCache.iml" />
+      <module fileurl="file://$PROJECT_DIR$/commons/commons.iml" filepath="$PROJECT_DIR$/commons/commons.iml" />
       <module fileurl="file://$PROJECT_DIR$/retrocache/retrocache.iml" filepath="$PROJECT_DIR$/retrocache/retrocache.iml" />
+      <module fileurl="file://$PROJECT_DIR$/retrocache-rxjava2/retrocache-rxjava2.iml" filepath="$PROJECT_DIR$/retrocache-rxjava2/retrocache-rxjava2.iml" />
     </modules>
   </component>
 </project>
