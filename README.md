@@ -107,6 +107,13 @@ RxJava2 adapter is still in beta. You can use it as normal [retrofit rxjava2 ada
     retrofitBuilder.addCallAdapterFactory(RxJava2CachedCallAdapterFactory.createWithScheduler(context, APP_VERSION, scheduler));
     ```
 
+Don't forget to include dependency:
+```gradle
+dependencies {
+    compile 'com.github.iagocanalejas:retrocache-rxjava2:<VERSION>'
+}
+```
+
 # Pull Requests
 I welcome and encourage all pull requests. Here are some basic rules to follow to ensure timely addition of your request:
   1. Match coding style (braces, spacing, etc.) This is best achieved using CMD+Option+L (on Mac) or Ctrl+Alt+L on Windows to reformat code with Android Studio defaults.
