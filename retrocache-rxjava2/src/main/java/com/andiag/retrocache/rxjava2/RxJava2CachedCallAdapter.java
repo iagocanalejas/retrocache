@@ -32,32 +32,32 @@ final class RxJava2CachedCallAdapter<R> implements CallAdapter<R, Object> {
     private final Cache<String, byte[]> mCachingSystem;
     private final Type mResponseType;
     private final Scheduler mScheduler;
-    private final boolean isAsync;
-    private final boolean isResult;
-    private final boolean isBody;
-    private final boolean isFlowable;
-    private final boolean isSingle;
-    private final boolean isMaybe;
-    private final boolean isCompletable;
+    private final boolean mAsync;
+    private final boolean mResult;
+    private final boolean mBody;
+    private final boolean mFlowable;
+    private final boolean mSingle;
+    private final boolean mMaybe;
+    private final boolean mCompletable;
     private final Retrofit mRetrofit;
     private final Annotation[] mAnnotations;
 
     RxJava2CachedCallAdapter(Cache<String, byte[]> cachingSystem, Type responseType, Scheduler scheduler, Retrofit retrofit, Annotation[] annotations,
-                             boolean isAsync, boolean isResult, boolean isBody, boolean isFlowable, boolean isSingle, boolean isMaybe,
-                             boolean isCompletable) {
+                             boolean mAsync, boolean mResult, boolean mBody, boolean mFlowable, boolean mSingle, boolean mMaybe,
+                             boolean mCompletable) {
 
         this.mCachingSystem = cachingSystem;
         this.mResponseType = responseType;
         this.mScheduler = scheduler;
         this.mRetrofit = retrofit;
         this.mAnnotations = annotations;
-        this.isAsync = isAsync;
-        this.isResult = isResult;
-        this.isBody = isBody;
-        this.isFlowable = isFlowable;
-        this.isSingle = isSingle;
-        this.isMaybe = isMaybe;
-        this.isCompletable = isCompletable;
+        this.mAsync = mAsync;
+        this.mResult = mResult;
+        this.mBody = mBody;
+        this.mFlowable = mFlowable;
+        this.mSingle = mSingle;
+        this.mMaybe = mMaybe;
+        this.mCompletable = mCompletable;
     }
 
     @Override
@@ -67,14 +67,14 @@ final class RxJava2CachedCallAdapter<R> implements CallAdapter<R, Object> {
 
     @Override
     public Object adapt(Call<R> call) {
-        Observable<Response<R>> responseObservable = isAsync
+        Observable<Response<R>> responseObservable = mAsync
                 ? new CallEnqueueObservable<>(mCachingSystem, call, mResponseType, mAnnotations, mRetrofit)
                 : new CallExecuteObservable<>(mCachingSystem, call, mResponseType, mAnnotations, mRetrofit);
 
         Observable<?> observable;
-        if (isResult) {
+        if (mResult) {
             observable = new ResultObservable<>(responseObservable);
-        } else if (isBody) {
+        } else if (mBody) {
             observable = new BodyObservable<>(responseObservable);
         } else {
             observable = responseObservable;
@@ -84,16 +84,16 @@ final class RxJava2CachedCallAdapter<R> implements CallAdapter<R, Object> {
             observable = observable.subscribeOn(mScheduler);
         }
 
-        if (isFlowable) {
+        if (mFlowable) {
             return observable.toFlowable(BackpressureStrategy.LATEST);
         }
-        if (isSingle) {
+        if (mSingle) {
             return observable.singleOrError();
         }
-        if (isMaybe) {
+        if (mMaybe) {
             return observable.singleElement();
         }
-        if (isCompletable) {
+        if (mCompletable) {
             return observable.ignoreElements();
         }
         return observable;

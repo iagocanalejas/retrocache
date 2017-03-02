@@ -57,7 +57,9 @@ public final class RxJava2CachedCallAdapterFactory extends CallAdapter.Factory {
     }
 
     public static RxJava2CachedCallAdapterFactory createWithScheduler(@NonNull Context context, int appVersion, Scheduler scheduler) {
-        if (scheduler == null) throw new NullPointerException("mScheduler == null");
+        if (scheduler == null) {
+            throw new NullPointerException("mScheduler == null");
+        }
         return new RxJava2CachedCallAdapterFactory(RetroCache.getDualCache(context, appVersion), scheduler, false);
     }
 
@@ -70,7 +72,9 @@ public final class RxJava2CachedCallAdapterFactory extends CallAdapter.Factory {
     }
 
     public static RxJava2CachedCallAdapterFactory createWithScheduler(@NonNull Cache<String, byte[]> cachingSystem, Scheduler scheduler) {
-        if (scheduler == null) throw new NullPointerException("mScheduler == null");
+        if (scheduler == null) {
+            throw new NullPointerException("mScheduler == null");
+        }
         return new RxJava2CachedCallAdapterFactory(cachingSystem, scheduler, false);
     }
 

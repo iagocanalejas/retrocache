@@ -24,53 +24,53 @@ import io.reactivex.plugins.RxJavaPlugins;
 import retrofit2.Response;
 
 final class ResultObservable<T> extends Observable<Result<T>> {
-    private final Observable<Response<T>> upstream;
+    private final Observable<Response<T>> mUpstream;
 
     ResultObservable(Observable<Response<T>> upstream) {
-        this.upstream = upstream;
+        this.mUpstream = upstream;
     }
 
     @Override
     protected void subscribeActual(Observer<? super Result<T>> observer) {
-        upstream.subscribe(new ResultObserver<T>(observer));
+        mUpstream.subscribe(new ResultObserver<T>(observer));
     }
 
     private static class ResultObserver<R> implements Observer<Response<R>> {
-        private final Observer<? super Result<R>> observer;
+        private final Observer<? super Result<R>> mObserver;
 
         ResultObserver(Observer<? super Result<R>> observer) {
-            this.observer = observer;
+            this.mObserver = observer;
         }
 
         @Override
         public void onSubscribe(Disposable disposable) {
-            observer.onSubscribe(disposable);
+            mObserver.onSubscribe(disposable);
         }
 
         @Override
         public void onNext(Response<R> response) {
-            observer.onNext(Result.response(response));
+            mObserver.onNext(Result.response(response));
         }
 
         @Override
         public void onError(Throwable throwable) {
             try {
-                observer.onNext(Result.<R>error(throwable));
+                mObserver.onNext(Result.<R>error(throwable));
             } catch (Throwable t) {
                 try {
-                    observer.onError(t);
+                    mObserver.onError(t);
                 } catch (Throwable inner) {
                     Exceptions.throwIfFatal(inner);
                     RxJavaPlugins.onError(new CompositeException(t, inner));
                 }
                 return;
             }
-            observer.onComplete();
+            mObserver.onComplete();
         }
 
         @Override
         public void onComplete() {
-            observer.onComplete();
+            mObserver.onComplete();
         }
     }
 }

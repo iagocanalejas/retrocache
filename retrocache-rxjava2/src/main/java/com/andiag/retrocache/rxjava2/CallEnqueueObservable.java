@@ -63,7 +63,7 @@ final class CallEnqueueObservable<T> extends Observable<Response<T>> {
             }
             return;
         }
-        // Since Call is a one-shot type, clone it for each new observer.
+        // Since Call is a one-shot type, clone it for each new mObserver.
         Call<T> call = mOriginalCall.clone();
         CallCallback<T> callback = new CallCallback<>(call, observer, mCachingSystem, mResponseType, mAnnotations, mRetrofit, mCachingActive);
         observer.onSubscribe(callback);
@@ -71,20 +71,20 @@ final class CallEnqueueObservable<T> extends Observable<Response<T>> {
     }
 
     private static final class CallCallback<T> implements Disposable, Callback<T> {
-        private final Call<?> call;
-        private final Observer<? super Response<T>> observer;
+        private final Call<?> mCall;
+        private final Observer<? super Response<T>> mObserver;
         private final Cache<String, byte[]> mCachingSystem;
         private final boolean mCachingActive;
         private final Retrofit mRetrofit;
         private final Type mResponseType;
         private final Annotation[] mAnnotations;
-        boolean terminated = false;
+        boolean mTerminated = false;
 
         CallCallback(Call<?> call, Observer<? super Response<T>> observer, Cache<String, byte[]> cachingSystem, Type responseType,
                      Annotation[] annotations, Retrofit retrofit, boolean cachingActive) {
 
-            this.call = call;
-            this.observer = observer;
+            this.mCall = call;
+            this.mObserver = observer;
             this.mCachingSystem = cachingSystem;
             this.mAnnotations = annotations;
             this.mResponseType = responseType;
@@ -94,7 +94,9 @@ final class CallEnqueueObservable<T> extends Observable<Response<T>> {
 
         @Override
         public void onResponse(Call<T> call, Response<T> response) {
-            if (call.isCanceled()) return;
+            if (call.isCanceled()) {
+                return;
+            }
 
             if (mCachingActive) {
                 mCachingSystem.put(
@@ -102,18 +104,18 @@ final class CallEnqueueObservable<T> extends Observable<Response<T>> {
             }
 
             try {
-                observer.onNext(response);
+                mObserver.onNext(response);
 
                 if (!call.isCanceled()) {
-                    terminated = true;
-                    observer.onComplete();
+                    mTerminated = true;
+                    mObserver.onComplete();
                 }
             } catch (Throwable t) {
-                if (terminated) {
+                if (mTerminated) {
                     RxJavaPlugins.onError(t);
                 } else if (!call.isCanceled()) {
                     try {
-                        observer.onError(t);
+                        mObserver.onError(t);
                     } catch (Throwable inner) {
                         Exceptions.throwIfFatal(inner);
                         RxJavaPlugins.onError(new CompositeException(t, inner));
@@ -124,10 +126,12 @@ final class CallEnqueueObservable<T> extends Observable<Response<T>> {
 
         @Override
         public void onFailure(Call<T> call, Throwable t) {
-            if (call.isCanceled()) return;
+            if (call.isCanceled()) {
+                return;
+            }
 
             try {
-                observer.onError(t);
+                mObserver.onError(t);
             } catch (Throwable inner) {
                 Exceptions.throwIfFatal(inner);
                 RxJavaPlugins.onError(new CompositeException(t, inner));
@@ -136,12 +140,12 @@ final class CallEnqueueObservable<T> extends Observable<Response<T>> {
 
         @Override
         public void dispose() {
-            call.cancel();
+            mCall.cancel();
         }
 
         @Override
         public boolean isDisposed() {
-            return call.isCanceled();
+            return mCall.isCanceled();
         }
     }
 }

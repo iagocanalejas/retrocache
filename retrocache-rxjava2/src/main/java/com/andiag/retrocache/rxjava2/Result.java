@@ -23,48 +23,52 @@ import retrofit2.Response;
  * The result of executing an HTTP request.
  */
 public final class Result<T> {
-    private final Response<T> response;
-    private final Throwable error;
+    private final Response<T> mResponse;
+    private final Throwable mError;
 
     private Result(Response<T> response, Throwable error) {
-        this.response = response;
-        this.error = error;
+        this.mResponse = response;
+        this.mError = error;
     }
 
     public static <T> Result<T> error(Throwable error) {
-        if (error == null) throw new NullPointerException("error == null");
+        if (error == null) {
+            throw new NullPointerException("mError == null");
+        }
         return new Result<>(null, error);
     }
 
     public static <T> Result<T> response(Response<T> response) {
-        if (response == null) throw new NullPointerException("response == null");
+        if (response == null) {
+            throw new NullPointerException("mResponse == null");
+        }
         return new Result<>(response, null);
     }
 
     /**
-     * The response received from executing an HTTP request. Only present when {@link #isError()} is
+     * The mResponse received from executing an HTTP request. Only present when {@link #isError()} is
      * false, null otherwise.
      */
     public Response<T> response() {
-        return response;
+        return mResponse;
     }
 
     /**
-     * The error experienced while attempting to execute an HTTP request. Only present when {@link
+     * The mError experienced while attempting to execute an HTTP request. Only present when {@link
      * #isError()} is true, null otherwise.
      * <p>
-     * If the error is an {@link IOException} then there was a problem with the transport to the
+     * If the mError is an {@link IOException} then there was a problem with the transport to the
      * remote server. Any other exception type indicates an unexpected failure and should be
-     * considered fatal (configuration error, programming error, etc.).
+     * considered fatal (configuration mError, programming mError, etc.).
      */
     public Throwable error() {
-        return error;
+        return mError;
     }
 
     /**
-     * {@code true} if the request resulted in an error. See {@link #error()} for the cause.
+     * {@code true} if the request resulted in an mError. See {@link #error()} for the cause.
      */
     public boolean isError() {
-        return error != null;
+        return mError != null;
     }
 }

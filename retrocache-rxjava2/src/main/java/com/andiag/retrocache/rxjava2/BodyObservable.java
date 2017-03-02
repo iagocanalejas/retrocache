@@ -25,39 +25,39 @@ import retrofit2.HttpException;
 import retrofit2.Response;
 
 final class BodyObservable<T> extends Observable<T> {
-    private final Observable<Response<T>> upstream;
+    private final Observable<Response<T>> mUpstream;
 
     BodyObservable(Observable<Response<T>> upstream) {
-        this.upstream = upstream;
+        this.mUpstream = upstream;
     }
 
     @Override
     protected void subscribeActual(Observer<? super T> observer) {
-        upstream.subscribe(new BodyObserver<T>(observer));
+        mUpstream.subscribe(new BodyObserver<T>(observer));
     }
 
     private static class BodyObserver<R> implements Observer<Response<R>> {
-        private final Observer<? super R> observer;
-        private boolean terminated;
+        private final Observer<? super R> mObserver;
+        private boolean mTerminated;
 
         BodyObserver(Observer<? super R> observer) {
-            this.observer = observer;
+            this.mObserver = observer;
         }
 
         @Override
         public void onSubscribe(Disposable disposable) {
-            observer.onSubscribe(disposable);
+            mObserver.onSubscribe(disposable);
         }
 
         @Override
         public void onNext(Response<R> response) {
             if (response.isSuccessful()) {
-                observer.onNext(response.body());
+                mObserver.onNext(response.body());
             } else {
-                terminated = true;
+                mTerminated = true;
                 Throwable t = new HttpException(response);
                 try {
-                    observer.onError(t);
+                    mObserver.onError(t);
                 } catch (Throwable inner) {
                     Exceptions.throwIfFatal(inner);
                     RxJavaPlugins.onError(new CompositeException(t, inner));
@@ -67,15 +67,15 @@ final class BodyObservable<T> extends Observable<T> {
 
         @Override
         public void onComplete() {
-            if (!terminated) {
-                observer.onComplete();
+            if (!mTerminated) {
+                mObserver.onComplete();
             }
         }
 
         @Override
         public void onError(Throwable throwable) {
-            if (!terminated) {
-                observer.onError(throwable);
+            if (!mTerminated) {
+                mObserver.onError(throwable);
             } else {
                 // This should never happen! onNext handles and forwards errors automatically.
                 Throwable broken = new AssertionError(

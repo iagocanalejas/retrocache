@@ -101,20 +101,20 @@ final class CallExecuteObservable<T> extends Observable<Response<T>> {
     }
 
     private static final class CallDisposable implements Disposable {
-        private final Call<?> call;
+        private final Call<?> mCall;
 
         CallDisposable(Call<?> call) {
-            this.call = call;
+            this.mCall = call;
         }
 
         @Override
         public void dispose() {
-            call.cancel();
+            mCall.cancel();
         }
 
         @Override
         public boolean isDisposed() {
-            return call.isCanceled();
+            return mCall.isCanceled();
         }
     }
 }
